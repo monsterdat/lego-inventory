@@ -1,22 +1,5 @@
 [
   {
-    "id": "mpiajpzj2o5s5",
-    "setNumber": "42177",
-    "name": "LEGO Technic Mercedes Benz G500",
-    "theme": "Technic",
-    "year": 2017,
-    "pieceCount": 4057,
-    "condition": "unbuilt",
-    "owner": "CK",
-    "purchasePrice": 599.9,
-    "marketValue": 450,
-    "purchaseDate": null,
-    "notes": "Mercedes-Benz G 500 Technic set, factory sealed in original packaging",
-    "imagePath": "images/mpiajpzj2o5s5.jpg",
-    "updatedAt": "2026-05-23T23:53:35.870Z",
-    "createdAt": "2026-05-23T11:54:38.943Z"
-  },
-  {
     "id": "mpi0zx6abn8zm",
     "setNumber": "10365",
     "name": "Pirates of the Caribbean - Captain Jack Sparrow's Pirate Ship",
