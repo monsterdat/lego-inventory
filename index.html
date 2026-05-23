@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#E3000B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>LEGO Inventory</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #E3000B;
+      --yellow: #FFD700;
+      --dark: #1A1A1A;
+      --gray: #6B7280;
+      --light-gray: #F3F4F6;
+      --white: #FFFFFF;
+      --border: #E5E7EB;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--light-gray);
+      color: var(--dark);
+      min-height: 100dvh;
+      padding-bottom: 70px;
+    }
+
+    header {
+      background: var(--red);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+
+    nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+    }
+
+    nav button {
+      flex: 1;
+      padding: 10px 0 8px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.68rem;
+      color: var(--gray);
+      transition: color 0.2s;
+    }
+
+    nav button.active { color: var(--red); }
+    nav button svg { width: 22px; height: 22px; }
+
+    .view { display: none; padding: 16px; }
+    .view.active { display: block; }
+
+    /* Stats */
+    .stats-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .stats-bar::-webkit-scrollbar { display: none; }
+
+    .stat-pill {
+      background: white;
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }
+    .stat-pill strong { color: var(--red); }
+
+    /* Search */
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      background: white;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: var(--red); }
+
+    .filter-select {
+      padding: 10px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      background: white;
+      outline: none;
+      cursor: pointer;
+      max-width: 110px;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    @media (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+    /* Card */
+    .set-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .set-card:active { transform: scale(0.97); }
+
+    .set-card .card-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+    .set-card .card-no-img {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+
+    .card-body { padding: 10px 12px 12px; }
+    .card-number { font-size: 0.72rem; color: var(--gray); margin-bottom: 2px; }
+    .card-name { font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+
+    .badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 7px; }
+    .badge {
+      font-size: 0.63rem;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .badge-built       { background: #D1FAE5; color: #065F46; }
+    .badge-unbuilt     { background: #FEF3C7; color: #92400E; }
+    .badge-incomplete  { background: #FEE2E2; color: #991B1B; }
+    .badge-theme       { background: #EDE9FE; color: #5B21B6; }
+
+    /* FAB */
+    .fab {
+      position: fixed;
+      bottom: 80px; right: 20px;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(227,0,11,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      z-index: 90;
+      transition: transform 0.15s;
+    }
+    .fab:active { transform: scale(0.93); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 600px;
+      max-height: 92dvh;
+      overflow-y: auto;
+      padding: 20px 20px 32px;
+      animation: slideUp 0.28s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      margin: 0 auto 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.15rem; font-weight: 700; }
+
+    .close-btn {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: var(--light-gray);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: var(--gray);
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.97rem;
+      background: white;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--red); }
+
+    .form-group input.ai-filled {
+      border-color: #7C3AED;
+      background: #FAF5FF;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Image picker */
+    .image-picker {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      color: var(--gray);
+      font-size: 0.88rem;
+      transition: border-color 0.15s;
+    }
+    .image-picker:hover { border-color: var(--red); }
+    .image-picker input[type="file"] { display: none; }
+    .image-picker .picker-icon { font-size: 2.2rem; }
+
+    .image-picker .preview-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-picker .change-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.88rem;
+      font-weight: 600;
+      gap: 6px;
+    }
+    .image-picker:hover .change-overlay { display: flex; }
+
+    /* AI analysis overlay */
+    .ai-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(124,58,237,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      gap: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #7C3AED;
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 4px;
+      letter-spacing: 0.03em;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 0.97rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary   { background: var(--red); color: white; }
+    .btn-secondary { background: var(--light-gray); color: var(--dark); }
+    .btn-danger    { background: #FEE2E2; color: #991B1B; }
+    .btn-purple    { background: #EDE9FE; color: #5B21B6; }
+
+    /* Detail */
+    .detail-image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .detail-no-image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--light-gray);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      margin-bottom: 14px;
+    }
+
+    .detail-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .meta-item {
+      background: var(--light-gray);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .meta-label {
+      font-size: 0.7rem;
+      color: var(--gray);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .meta-value {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .action-row { display: flex; gap: 8px; margin-top: 14px; }
+    .action-row .btn { flex: 1; }
+
+    /* Settings */
+    .settings-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .settings-card-title {
+      padding: 12px 16px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-item:last-child { border-bottom: none; }
+    .settings-item label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .settings-item input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: monospace;
+      outline: none;
+    }
+    .settings-item input:focus { border-color: var(--red); }
+    .settings-item .hint {
+      font-size: 0.75rem;
+      color: var(--gray);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    /* Setup screen */
+    .setup-screen {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 24px;
+      background: white;
+    }
+    .setup-logo { font-size: 3.5rem; margin-bottom: 14px; }
+    .setup-screen h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+    .setup-screen .subtitle {
+      color: var(--gray);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.65;
+    }
+    .setup-form { width: 100%; max-width: 420px; }
+    .setup-divider {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--gray);
+      margin: 20px 0;
+      position: relative;
+    }
+    .setup-divider::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 1px;
+      background: var(--border);
+    }
+    .setup-divider span {
+      position: relative;
+      background: white;
+      padding: 0 12px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dark);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      z-index: 400;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+      max-width: calc(100vw - 40px);
+    }
+    .toast.show { opacity: 1; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    .spinner-purple {
+      border-color: rgba(124,58,237,0.3);
+      border-top-color: #7C3AED;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--dark); }
+    .empty-state p { font-size: 0.88rem; line-height: 1.6; }
+
+    /* Info box */
+    .info-box {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #1E40AF;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────
+const Config = {
+  KEY: 'lego_config',
+  get() {
+    try { return JSON.parse(localStorage.getItem(this.KEY)); }
+    catch { return null; }
+  },
+  set(cfg) { localStorage.setItem(this.KEY, JSON.stringify(cfg)); },
+  clear() { localStorage.removeItem(this.KEY); },
+  isValid(cfg) { return cfg && cfg.owner && cfg.repo && cfg.token; }
+};
+
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+const state = {
+  view: 'list',
+  inventory: [],
+  inventorySha: null,
+  search: '',
+  filterCondition: '',
+  filterTheme: '',
+  editingSet: null,
+  syncing: false,
+};
+
+// ─────────────────────────────────────────────────────────────
+// GITHUB API
+// ─────────────────────────────────────────────────────────────
+const GitHub = {
+  get cfg() { return Config.get(); },
+  base() { return `https://api.github.com/repos/${this.cfg.owner}/${this.cfg.repo}/contents`; },
+  headers() {
+    return {
+      'Authorization': `Bearer ${this.cfg.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+  },
+  async getFile(path) {
+    const res = await fetch(`${this.base()}/${path}`, { headers: this.headers() });
+    if (res.status === 404) return null;
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || `GitHub ${res.status}`); }
+    return res.json();
+  },
+  async putFile(path, text, sha, message) {
+    const encoded = btoa(unescape(encodeURIComponent(text)));
+    const body = { message, content: encoded };
+    if (sha) body.sha = sha;
+    const res = await fetch(`${this.base()}/${path}`, {
+      method: 'PUT', headers: this.headers(), body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || `GitHub ${res.status}`); }
+    return res.json();
+  },
+  async putBinary(path, base64Data, sha, message) {
+    const body = { message, content: base64Data };
+    if (sha) body.sha = sha;
+    const res = await fetch(`${this.base()}/${path}`, {
+      method: 'PUT', headers: this.headers(), body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || `GitHub ${res.status}`); }
+    return res.json();
+  },
+  async deleteFile(path, sha, message) {
+    const res = await fetch(`${this.base()}/${path}`, {
+      method: 'DELETE', headers: this.headers(), body: JSON.stringify({ message, sha })
+    });
+    if (!res.ok && res.status !== 404) { const e = await res.json().catch(() => ({})); throw new Error(e.message || `GitHub ${res.status}`); }
+  },
+  async testConnection() {
+    const res = await fetch(`https://api.github.com/repos/${this.cfg.owner}/${this.cfg.repo}`, { headers: this.headers() });
+    return res.ok;
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// INVENTORY PERSISTENCE
+// ─────────────────────────────────────────────────────────────
+const INVENTORY_PATH = 'data/inventory.json';
+
+async function loadInventory() {
+  const file = await GitHub.getFile(INVENTORY_PATH);
+  if (!file) { state.inventory = []; state.inventorySha = null; return; }
+  state.inventorySha = file.sha;
+  const raw = file.content.replace(/\n/g, '');
+  state.inventory = JSON.parse(decodeURIComponent(escape(atob(raw))));
+}
+
+async function saveInventory(message = 'Update inventory') {
+  state.syncing = true;
+  updateSyncIndicator();
+  try {
+    const json = JSON.stringify(state.inventory, null, 2);
+    const result = await GitHub.putFile(INVENTORY_PATH, json, state.inventorySha, message);
+    state.inventorySha = result.content.sha;
+    showToast('Saved to GitHub');
+  } finally {
+    state.syncing = false;
+    updateSyncIndicator();
+  }
+}
+
+async function uploadImage(dataUrl, setId) {
+  const base64 = dataUrl.split(',')[1];
+  const path = `images/${setId}.jpg`;
+  const existing = await GitHub.getFile(path).catch(() => null);
+  await GitHub.putBinary(path, base64, existing?.sha || null, `Image for set ${setId}`);
+  return path;
+}
+
+// ─────────────────────────────────────────────────────────────
+// CLAUDE VISION
+// ─────────────────────────────────────────────────────────────
+async function analyzeImageWithClaude(dataUrl) {
+  const cfg = Config.get();
+  if (!cfg?.anthropicKey) throw new Error('No Anthropic API key set in Settings');
+
+  const base64 = dataUrl.split(',')[1];
+  const mediaType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+
+  const prompt = `You are analyzing a LEGO product image. The image may show a LEGO box, a built set, or loose pieces.
+
+Extract whatever information you can identify and return ONLY a valid JSON object with no extra text or markdown. Use null for fields you cannot determine with reasonable confidence.
+
+{
+  "setNumber": "the LEGO set number printed on box (e.g. '75192'), or null",
+  "name": "the official set name, or null",
+  "theme": "the theme/series (e.g. 'Star Wars', 'Technic', 'City', 'Creator'), or null",
+  "year": "4-digit year of release as a number, or null",
+  "pieceCount": "piece/parts count as a number, or null",
+  "condition": "one of: 'built', 'unbuilt', 'incomplete' — your best guess from the image",
+  "notes": "brief relevant observation (e.g. 'Box appears sealed', 'Missing minifigures visible'), or null"
+}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': cfg.anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-calls': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Claude API error ${res.status}`);
+  }
+
+  const data = await res.json();
+  const text = data.content[0].text.trim();
+
+  // Extract JSON even if Claude wraps it in markdown
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('Could not parse Claude response');
+  return JSON.parse(jsonMatch[0]);
+}
+
+// ─────────────────────────────────────────────────────────────
+// IMAGE UTILS
+// ─────────────────────────────────────────────────────────────
+function resizeImage(file, maxWidth = 1200, quality = 0.88) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// ─────────────────────────────────────────────────────────────
+// UI HELPERS
+// ─────────────────────────────────────────────────────────────
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return document.querySelectorAll(sel); }
+
+function showToast(msg, duration = 2800) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function updateSyncIndicator() {
+  const el = $('#sync-indicator');
+  if (el) el.style.display = state.syncing ? 'inline-block' : 'none';
+}
+
+function icon(name) {
+  const icons = {
+    grid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
+    settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  };
+  return icons[name] || '';
+}
+
+function fmt(n) {
+  if (n == null) return '—';
+  return Number(n).toLocaleString();
+}
+function fmtCurrency(n) {
+  if (n == null || n === '') return '—';
+  return '$' + Number(n).toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// ─────────────────────────────────────────────────────────────
+// SETUP SCREEN
+// ─────────────────────────────────────────────────────────────
+function renderSetup() {
+  document.body.innerHTML = `
+    <div id="toast" class="toast"></div>
+    <div class="setup-screen">
+      <div class="setup-logo">🧱</div>
+      <h1>LEGO Inventory</h1>
+      <p class="subtitle">Connect to a GitHub repository to store your collection. Your data stays in your own repo.</p>
+      <form class="setup-form" id="setup-form">
+        <div class="form-group">
+          <label>GitHub Username</label>
+          <input type="text" id="cfg-owner" placeholder="your-username" required autocomplete="off" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label>Repository Name</label>
+          <input type="text" id="cfg-repo" placeholder="lego-inventory" required autocomplete="off" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label>GitHub Personal Access Token</label>
+          <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx" required autocomplete="off">
+          <p style="font-size:0.75rem;color:var(--gray);margin-top:5px;line-height:1.5">
+            Create at: GitHub → Settings → Developer settings → Personal access tokens (classic). Needs <strong>repo</strong> scope.
+          </p>
+        </div>
+        <div class="setup-divider"><span>Optional</span></div>
+        <div class="form-group">
+          <label>Anthropic API Key</label>
+          <input type="password" id="cfg-anthropic" placeholder="sk-ant-xxxxxxxxxxxx" autocomplete="off">
+          <p style="font-size:0.75rem;color:var(--gray);margin-top:5px;line-height:1.5">
+            Enables AI image recognition to auto-fill set details from photos. Get a key at console.anthropic.com.
+          </p>
+        </div>
+        <button type="submit" class="btn btn-primary" id="setup-btn">Connect to GitHub</button>
+      </form>
+    </div>
+  `;
+
+  $('#setup-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const cfg = {
+      owner: $('#cfg-owner').value.trim(),
+      repo: $('#cfg-repo').value.trim(),
+      token: $('#cfg-token').value.trim(),
+      anthropicKey: $('#cfg-anthropic').value.trim() || null,
+    };
+    const btn = $('#setup-btn');
+    btn.innerHTML = '<span class="spinner"></span> Connecting...';
+    btn.disabled = true;
+    Config.set(cfg);
+    try {
+      const ok = await GitHub.testConnection();
+      if (!ok) throw new Error('Could not access repository. Check username, repo name, and token.');
+      await loadInventory();
+      renderApp();
+    } catch (err) {
+      Config.clear();
+      btn.textContent = 'Connect to GitHub';
+      btn.disabled = false;
+      showToast(err.message);
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// MAIN APP SHELL
+// ─────────────────────────────────────────────────────────────
+function renderApp() {
+  document.body.innerHTML = `
+    <div id="toast" class="toast"></div>
+    <header>
+      <h1>🧱 LEGO Inventory</h1>
+      <span id="sync-indicator" class="spinner" style="display:none"></span>
+    </header>
+    <main>
+      <div id="view-list" class="view active"></div>
+      <div id="view-settings" class="view"></div>
+    </main>
+    <nav>
+      <button id="nav-list" class="active" onclick="switchView('list')">
+        ${icon('grid')} Collection
+      </button>
+      <button id="nav-settings" onclick="switchView('settings')">
+        ${icon('settings')} Settings
+      </button>
+    </nav>
+    <button class="fab" id="fab" onclick="openAddModal()">+</button>
+
+    <div class="modal-overlay" id="form-modal">
+      <div class="modal"><div id="form-modal-body"></div></div>
+    </div>
+    <div class="modal-overlay" id="detail-modal">
+      <div class="modal"><div id="detail-modal-body"></div></div>
+    </div>
+  `;
+
+  $('#form-modal').addEventListener('click', e => { if (e.target === $('#form-modal')) closeFormModal(); });
+  $('#detail-modal').addEventListener('click', e => { if (e.target === $('#detail-modal')) closeDetailModal(); });
+
+  renderListView();
+  renderSettingsView();
+}
+
+function switchView(view) {
+  state.view = view;
+  $$('.view').forEach(v => v.classList.remove('active'));
+  $$('nav button').forEach(b => b.classList.remove('active'));
+  $(`#view-${view}`).classList.add('active');
+  $(`#nav-${view}`).classList.add('active');
+  const fab = $('#fab');
+  if (fab) fab.style.display = view === 'list' ? 'flex' : 'none';
+}
+
+// ─────────────────────────────────────────────────────────────
+// LIST VIEW
+// ─────────────────────────────────────────────────────────────
+function renderListView() {
+  const cfg = Config.get();
+  const repoBase = cfg ? `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/main/` : '';
+  const themes = [...new Set(state.inventory.map(s => s.theme).filter(Boolean))].sort();
+
+  const filtered = state.inventory.filter(s => {
+    const q = state.search.toLowerCase();
+    const matchSearch = !q || [s.name, s.setNumber, s.theme].some(f => f?.toLowerCase().includes(q));
+    const matchCond = !state.filterCondition || s.condition === state.filterCondition;
+    const matchTheme = !state.filterTheme || s.theme === state.filterTheme;
+    return matchSearch && matchCond && matchTheme;
+  });
+
+  const totalValue = state.inventory.reduce((acc, s) => acc + (parseFloat(s.marketValue) || 0), 0);
+
+  $('#view-list').innerHTML = `
+    <div class="stats-bar">
+      <div class="stat-pill"><strong>${state.inventory.length}</strong> sets</div>
+      ${totalValue > 0 ? `<div class="stat-pill">Value <strong>${fmtCurrency(totalValue)}</strong></div>` : ''}
+      <div class="stat-pill"><strong>${state.inventory.filter(s => s.condition === 'built').length}</strong> built</div>
+      <div class="stat-pill"><strong>${state.inventory.filter(s => s.condition === 'unbuilt').length}</strong> unbuilt</div>
+      <div class="stat-pill"><strong>${themes.length}</strong> themes</div>
+    </div>
+    <div class="search-bar">
+      <input type="search" placeholder="Search by name, number, theme…" value="${state.search}" id="search-input" autocomplete="off">
+      <select class="filter-select" id="filter-condition">
+        <option value="">All</option>
+        <option value="built" ${state.filterCondition === 'built' ? 'selected' : ''}>Built</option>
+        <option value="unbuilt" ${state.filterCondition === 'unbuilt' ? 'selected' : ''}>Unbuilt</option>
+        <option value="incomplete" ${state.filterCondition === 'incomplete' ? 'selected' : ''}>Incomplete</option>
+      </select>
+      ${themes.length > 1 ? `
+        <select class="filter-select" id="filter-theme">
+          <option value="">All themes</option>
+          ${themes.map(t => `<option value="${t}" ${state.filterTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
+        </select>` : ''}
+    </div>
+    ${filtered.length === 0
+      ? `<div class="empty-state">
+           <div class="icon">🧱</div>
+           <h3>${state.inventory.length === 0 ? 'No sets yet' : 'No matches'}</h3>
+           <p>${state.inventory.length === 0 ? 'Tap + to add your first LEGO set' : 'Try adjusting your search or filters'}</p>
+         </div>`
+      : `<div class="grid">
+           ${filtered.map(s => `
+             <div class="set-card" onclick="openDetailModal('${s.id}')">
+               ${s.imagePath
+                 ? `<img class="card-img" src="${repoBase}${s.imagePath}" alt="${esc(s.name)}" loading="lazy"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                 : ''}
+               <div class="card-no-img" ${s.imagePath ? 'style="display:none"' : ''}>🧱</div>
+               <div class="card-body">
+                 ${s.setNumber ? `<div class="card-number">${esc(s.setNumber)}</div>` : ''}
+                 <div class="card-name">${esc(s.name || 'Unnamed set')}</div>
+                 <div class="badges">
+                   <span class="badge badge-${s.condition || 'unbuilt'}">${s.condition || 'unbuilt'}</span>
+                   ${s.theme ? `<span class="badge badge-theme">${esc(s.theme)}</span>` : ''}
+                 </div>
+               </div>
+             </div>
+           `).join('')}
+         </div>`
+    }
+  `;
+
+  $('#search-input').addEventListener('input', e => { state.search = e.target.value; renderListView(); });
+  $('#filter-condition')?.addEventListener('change', e => { state.filterCondition = e.target.value; renderListView(); });
+  $('#filter-theme')?.addEventListener('change', e => { state.filterTheme = e.target.value; renderListView(); });
+}
+
+// ─────────────────────────────────────────────────────────────
+// DETAIL MODAL
+// ─────────────────────────────────────────────────────────────
+function openDetailModal(id) {
+  const s = state.inventory.find(x => x.id === id);
+  if (!s) return;
+  const cfg = Config.get();
+  const repoBase = cfg ? `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/main/` : '';
+
+  $('#detail-modal-body').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>${esc(s.name || 'Set Details')}</h2>
+      <button class="close-btn" onclick="closeDetailModal()">✕</button>
+    </div>
+    ${s.imagePath
+      ? `<img class="detail-image" src="${repoBase}${s.imagePath}" alt="${esc(s.name)}">`
+      : `<div class="detail-no-image">🧱</div>`}
+    <div class="badges" style="margin-bottom:12px">
+      <span class="badge badge-${s.condition || 'unbuilt'}" style="font-size:0.82rem;padding:4px 12px">${s.condition || 'unbuilt'}</span>
+      ${s.theme ? `<span class="badge badge-theme" style="font-size:0.82rem;padding:4px 12px">${esc(s.theme)}</span>` : ''}
+    </div>
+    <div class="detail-meta">
+      ${s.setNumber ? `<div class="meta-item"><div class="meta-label">Set #</div><div class="meta-value">${esc(s.setNumber)}</div></div>` : ''}
+      ${s.year ? `<div class="meta-item"><div class="meta-label">Year</div><div class="meta-value">${s.year}</div></div>` : ''}
+      ${s.pieceCount ? `<div class="meta-item"><div class="meta-label">Pieces</div><div class="meta-value">${fmt(s.pieceCount)}</div></div>` : ''}
+      ${s.purchasePrice != null ? `<div class="meta-item"><div class="meta-label">Paid</div><div class="meta-value">${fmtCurrency(s.purchasePrice)}</div></div>` : ''}
+      ${s.marketValue != null ? `<div class="meta-item"><div class="meta-label">Market Value</div><div class="meta-value">${fmtCurrency(s.marketValue)}</div></div>` : ''}
+      ${s.purchaseDate ? `<div class="meta-item"><div class="meta-label">Purchased</div><div class="meta-value">${s.purchaseDate}</div></div>` : ''}
+    </div>
+    ${s.notes ? `<p style="font-size:0.88rem;color:var(--gray);line-height:1.65;margin-bottom:12px">${esc(s.notes)}</p>` : ''}
+    <div class="action-row">
+      <button class="btn btn-secondary" onclick="closeDetailModal();openEditModal('${s.id}')">Edit</button>
+      <button class="btn btn-danger" onclick="confirmDelete('${s.id}')">Delete</button>
+    </div>
+  `;
+  $('#detail-modal').classList.add('active');
+}
+
+function closeDetailModal() { $('#detail-modal').classList.remove('active'); }
+
+// ─────────────────────────────────────────────────────────────
+// ADD / EDIT FORM
+// ─────────────────────────────────────────────────────────────
+let pendingImageDataUrl = null;
+
+function openAddModal() {
+  state.editingSet = null;
+  pendingImageDataUrl = null;
+  renderFormModal();
+}
+
+function openEditModal(id) {
+  state.editingSet = state.inventory.find(s => s.id === id) || null;
+  pendingImageDataUrl = null;
+  renderFormModal();
+}
+
+function renderFormModal(prefill = {}) {
+  const s = { ...(state.editingSet || {}), ...prefill };
+  const isEdit = !!state.editingSet;
+  const cfg = Config.get();
+  const repoBase = cfg ? `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/main/` : '';
+  const hasAI = !!(cfg?.anthropicKey);
+
+  $('#form-modal-body').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>${isEdit ? 'Edit Set' : 'Add Set'}</h2>
+      <button class="close-btn" onclick="closeFormModal()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>Photo ${hasAI ? '<span class="ai-badge">✦ AI auto-fill</span>' : ''}</label>
+      <div class="image-picker" id="image-picker" onclick="triggerImagePicker()">
+        ${(pendingImageDataUrl || s.imagePath)
+          ? `<img class="preview-img" src="${pendingImageDataUrl || repoBase + s.imagePath}" alt="Set photo">
+             <div class="change-overlay">📷 Change photo</div>`
+          : `<div class="picker-icon">📷</div>
+             <span>${hasAI ? 'Take or choose a photo — AI will fill in details' : 'Take or choose a photo'}</span>`
+        }
+        <input type="file" id="image-input" accept="image/*" capture="environment">
+      </div>
+    </div>
+
+    ${Object.keys(prefill).length > 0 ? `
+      <div class="info-box">
+        ✦ AI filled in the fields below from your photo. Review and edit anything that looks wrong.
+      </div>` : ''}
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Set Number</label>
+        <input type="text" id="f-setNumber" value="${esc(s.setNumber || '')}" placeholder="75192" class="${prefill.setNumber ? 'ai-filled' : ''}">
+      </div>
+      <div class="form-group">
+        <label>Year</label>
+        <input type="number" id="f-year" value="${s.year || ''}" placeholder="${new Date().getFullYear()}" min="1949" max="${new Date().getFullYear() + 2}" class="${prefill.year ? 'ai-filled' : ''}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Set Name *</label>
+      <input type="text" id="f-name" value="${esc(s.name || '')}" placeholder="Millennium Falcon" class="${prefill.name ? 'ai-filled' : ''}">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Theme</label>
+        <input type="text" id="f-theme" value="${esc(s.theme || '')}" placeholder="Star Wars" class="${prefill.theme ? 'ai-filled' : ''}">
+      </div>
+      <div class="form-group">
+        <label>Piece Count</label>
+        <input type="number" id="f-pieceCount" value="${s.pieceCount || ''}" placeholder="7541" class="${prefill.pieceCount ? 'ai-filled' : ''}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Condition</label>
+      <select id="f-condition" class="${prefill.condition ? 'ai-filled' : ''}">
+        <option value="unbuilt" ${(s.condition || 'unbuilt') === 'unbuilt' ? 'selected' : ''}>Unbuilt (sealed / loose)</option>
+        <option value="built" ${s.condition === 'built' ? 'selected' : ''}>Built</option>
+        <option value="incomplete" ${s.condition === 'incomplete' ? 'selected' : ''}>Incomplete</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Purchase Price ($)</label>
+        <input type="number" id="f-purchasePrice" value="${s.purchasePrice ?? ''}" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Market Value ($)</label>
+        <input type="number" id="f-marketValue" value="${s.marketValue ?? ''}" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Purchase Date</label>
+      <input type="date" id="f-purchaseDate" value="${s.purchaseDate || ''}">
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="f-notes" rows="3" placeholder="Any notes…" class="${prefill.notes ? 'ai-filled' : ''}">${esc(s.notes || '')}</textarea>
+    </div>
+
+    <button class="btn btn-primary" id="save-btn" onclick="saveSet()">
+      ${isEdit ? 'Save Changes' : 'Add to Collection'}
+    </button>
+  `;
+
+  attachImagePickerHandler();
+  $('#form-modal').classList.add('active');
+}
+
+function triggerImagePicker() { $('#image-input')?.click(); }
+
+function attachImagePickerHandler() {
+  const input = $('#image-input');
+  if (!input) return;
+  input.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const dataUrl = await resizeImage(file);
+    pendingImageDataUrl = dataUrl;
+
+    const cfg = Config.get();
+    if (cfg?.anthropicKey) {
+      // Show AI analysis overlay
+      const picker = $('#image-picker');
+      picker.innerHTML = `
+        <img class="preview-img" src="${dataUrl}" alt="Set photo">
+        <div class="ai-overlay">
+          <span class="spinner spinner-purple" style="width:28px;height:28px;border-width:3px"></span>
+          <span>Analysing with Claude…</span>
+        </div>
+        <input type="file" id="image-input" accept="image/*" capture="environment">
+      `;
+      // Disable save while analysing
+      const saveBtn = $('#save-btn');
+      if (saveBtn) { saveBtn.disabled = true; }
+
+      try {
+        const result = await analyzeImageWithClaude(dataUrl);
+        // Re-render form with AI prefill, preserving current image
+        const current = gatherFormValues();
+        renderFormModal({ ...result });
+        // Restore image
+        pendingImageDataUrl = dataUrl;
+        const newPicker = $('#image-picker');
+        if (newPicker) {
+          newPicker.innerHTML = `
+            <img class="preview-img" src="${dataUrl}" alt="Set photo">
+            <div class="change-overlay">📷 Change photo</div>
+            <input type="file" id="image-input" accept="image/*" capture="environment">
+          `;
+          newPicker.onclick = () => $('#image-input').click();
+          attachImagePickerHandler();
+        }
+        showToast('AI filled in the details — review and save!');
+      } catch (err) {
+        // Remove overlay, keep preview
+        const picker2 = $('#image-picker');
+        if (picker2) {
+          picker2.innerHTML = `
+            <img class="preview-img" src="${dataUrl}" alt="Set photo">
+            <div class="change-overlay">📷 Change photo</div>
+            <input type="file" id="image-input" accept="image/*" capture="environment">
+          `;
+          picker2.onclick = () => $('#image-input').click();
+          attachImagePickerHandler();
+        }
+        if ($('#save-btn')) $('#save-btn').disabled = false;
+        showToast('AI analysis failed: ' + err.message);
+      }
+    } else {
+      // No AI — just show preview
+      const picker = $('#image-picker');
+      picker.innerHTML = `
+        <img class="preview-img" src="${dataUrl}" alt="Set photo">
+        <div class="change-overlay">📷 Change photo</div>
+        <input type="file" id="image-input" accept="image/*" capture="environment">
+      `;
+      picker.onclick = () => $('#image-input').click();
+      attachImagePickerHandler();
+    }
+  });
+}
+
+function gatherFormValues() {
+  return {
+    setNumber: $('#f-setNumber')?.value.trim() || null,
+    name: $('#f-name')?.value.trim() || null,
+    theme: $('#f-theme')?.value.trim() || null,
+    year: $('#f-year')?.value ? parseInt($('#f-year').value) : null,
+    pieceCount: $('#f-pieceCount')?.value ? parseInt($('#f-pieceCount').value) : null,
+    condition: $('#f-condition')?.value || 'unbuilt',
+    purchasePrice: $('#f-purchasePrice')?.value ? parseFloat($('#f-purchasePrice').value) : null,
+    marketValue: $('#f-marketValue')?.value ? parseFloat($('#f-marketValue').value) : null,
+    purchaseDate: $('#f-purchaseDate')?.value || null,
+    notes: $('#f-notes')?.value.trim() || null,
+  };
+}
+
+function closeFormModal() {
+  $('#form-modal').classList.remove('active');
+  pendingImageDataUrl = null;
+}
+
+async function saveSet() {
+  const name = $('#f-name').value.trim();
+  if (!name) { showToast('Set name is required'); return; }
+
+  const btn = $('#save-btn');
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+
+  try {
+    const isEdit = !!state.editingSet;
+    const id = isEdit ? state.editingSet.id : generateId();
+    let imagePath = isEdit ? (state.editingSet.imagePath || null) : null;
+
+    if (pendingImageDataUrl) {
+      showToast('Uploading photo…');
+      imagePath = await uploadImage(pendingImageDataUrl, id);
+    }
+
+    const set = {
+      id,
+      ...gatherFormValues(),
+      name,
+      imagePath,
+      updatedAt: new Date().toISOString(),
+      createdAt: isEdit ? state.editingSet.createdAt : new Date().toISOString(),
+    };
+
+    if (isEdit) {
+      const idx = state.inventory.findIndex(s => s.id === id);
+      state.inventory[idx] = set;
+    } else {
+      state.inventory.unshift(set);
+    }
+
+    await saveInventory(isEdit ? `Update: ${name}` : `Add: ${name}`);
+    closeFormModal();
+    renderListView();
+    showToast(isEdit ? 'Set updated!' : 'Set added to collection!');
+  } catch (err) {
+    showToast('Error: ' + err.message);
+    btn.textContent = state.editingSet ? 'Save Changes' : 'Add to Collection';
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// DELETE
+// ─────────────────────────────────────────────────────────────
+async function confirmDelete(id) {
+  const s = state.inventory.find(x => x.id === id);
+  if (!s || !confirm(`Delete "${s.name}"?\n\nThis cannot be undone.`)) return;
+  closeDetailModal();
+  try {
+    state.inventory = state.inventory.filter(x => x.id !== id);
+    await saveInventory(`Delete: ${s.name}`);
+    if (s.imagePath) {
+      const img = await GitHub.getFile(s.imagePath).catch(() => null);
+      if (img) await GitHub.deleteFile(s.imagePath, img.sha, `Remove image for ${s.name}`);
+    }
+    renderListView();
+    showToast('Set deleted');
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────────────────────
+function renderSettingsView() {
+  const cfg = Config.get() || {};
+  const pagesUrl = cfg.owner ? `https://${cfg.owner}.github.io/${cfg.repo || 'lego-inventory'}/` : null;
+
+  $('#view-settings').innerHTML = `
+    <div class="settings-card">
+      <div class="settings-card-title">GitHub Connection</div>
+      <div class="settings-item">
+        <label>GitHub Username</label>
+        <input type="text" id="s-owner" value="${cfg.owner || ''}" autocomplete="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="settings-item">
+        <label>Repository Name</label>
+        <input type="text" id="s-repo" value="${cfg.repo || ''}" autocomplete="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="settings-item">
+        <label>Personal Access Token</label>
+        <input type="password" id="s-token" value="${cfg.token || ''}" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-title">AI Image Recognition</div>
+      <div class="settings-item">
+        <label>Anthropic API Key</label>
+        <input type="password" id="s-anthropic" value="${cfg.anthropicKey || ''}" placeholder="sk-ant-…" autocomplete="off">
+        <p class="hint">When set, taking a photo will automatically identify the set and fill in details using Claude AI. Get a key at console.anthropic.com.</p>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="refreshInventory()">Refresh from GitHub</button>
+    <button class="btn btn-danger" style="margin-top:8px" onclick="disconnectGitHub()">Disconnect & Reset</button>
+
+    ${pagesUrl ? `
+      <div class="settings-card" style="margin-top:20px">
+        <div class="settings-card-title">GitHub Pages Deployment</div>
+        <div class="settings-item">
+          <p class="hint" style="font-size:0.82rem;line-height:1.8">
+            1. Push this repo to GitHub<br>
+            2. Go to repo → <strong>Settings → Pages</strong><br>
+            3. Source: <strong>Deploy from a branch</strong><br>
+            4. Branch: <strong>main</strong>, folder: <strong>/ (root)</strong><br>
+            5. Save — your app will be live at:<br>
+            <a href="${pagesUrl}" target="_blank" style="color:var(--red);word-break:break-all">${pagesUrl}</a>
+          </p>
+        </div>
+      </div>` : ''}
+
+    <p style="text-align:center;margin-top:20px;font-size:0.78rem;color:var(--gray)">
+      ${state.inventory.length} sets · Data stored in ${cfg.owner || '…'}/${cfg.repo || '…'}
+    </p>
+  `;
+}
+
+async function saveSettings() {
+  const cfg = {
+    owner: $('#s-owner').value.trim(),
+    repo: $('#s-repo').value.trim(),
+    token: $('#s-token').value.trim(),
+    anthropicKey: $('#s-anthropic').value.trim() || null,
+  };
+  if (!Config.isValid(cfg)) { showToast('GitHub username, repo, and token are required'); return; }
+  Config.set(cfg);
+  try {
+    const ok = await GitHub.testConnection();
+    if (!ok) throw new Error('Could not connect to GitHub repository');
+    await loadInventory();
+    renderListView();
+    renderSettingsView();
+    showToast('Settings saved!');
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
+async function refreshInventory() {
+  showToast('Refreshing…');
+  try {
+    await loadInventory();
+    renderListView();
+    showToast('Refreshed!');
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
+function disconnectGitHub() {
+  if (!confirm('Clear stored credentials? Your inventory data on GitHub will not be affected.')) return;
+  Config.clear();
+  renderSetup();
+}
+
+// ─────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────────────────────
+async function init() {
+  const cfg = Config.get();
+  if (!Config.isValid(cfg)) { renderSetup(); return; }
+  try {
+    await loadInventory();
+    renderApp();
+  } catch (err) {
+    Config.clear();
+    renderSetup();
+    setTimeout(() => showToast('Session expired — please reconnect'), 400);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
