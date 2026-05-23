@@ -778,7 +778,7 @@ async function uploadImage(dataUrl, setId) {
 // ─────────────────────────────────────────────────────────────
 // CLAUDE VISION
 // ─────────────────────────────────────────────────────────────
-async function callClaude(apiKey, messages, max_tokens = 512) {
+async function callClaude(apiKey, messages, { max_tokens = 512, model = 'claude-haiku-4-5-20251001' } = {}) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -787,7 +787,7 @@ async function callClaude(apiKey, messages, max_tokens = 512) {
       'anthropic-dangerous-direct-browser-access': 'true',
       'content-type': 'application/json',
     },
-    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens, messages })
+    body: JSON.stringify({ model, max_tokens, messages })
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -841,31 +841,40 @@ Return ONLY valid JSON, no markdown or extra text:
   }
   const step1 = parseJson(step1Text);
 
-  // Step 2: Knowledge lookup — Claude knows LEGO set details from training data
+  // Step 2: Knowledge lookup using Sonnet — much better LEGO pricing knowledge than Haiku
   let step2 = {};
   if (step1.setNumber) {
-    const metaPrompt = `You are a LEGO product expert. For LEGO set number ${step1.setNumber}, provide the official product details and Singapore pricing.
+    try {
+      step2 = await fetchSetMetadata(apiKey, step1.setNumber);
+    } catch (_) {}
+  }
 
-Return ONLY valid JSON, no markdown or extra text:
+  // step2 has name/theme/year/pieceCount/prices from knowledge; step1 has setNumber/condition/notes from image
+  return { ...step2, ...step1 };
+}
+
+async function fetchSetMetadata(apiKey, setNumber) {
+  const prompt = `You are a LEGO product expert with detailed knowledge of all LEGO sets and their pricing.
+For LEGO set number ${setNumber}, provide the official product details and Singapore retail pricing.
+
+Return ONLY valid JSON, no markdown or code fences:
 {
   "name": "exact official LEGO product name as listed on shop.lego.com",
   "theme": "theme e.g. Star Wars, Technic, Icons, City, Creator Expert, Botanical Collection, Harry Potter",
   "year": release year as integer,
   "pieceCount": piece count as integer,
-  "purchasePrice": Singapore retail price in SGD as a number (e.g. 1099.9) — check the LEGO Singapore shop price including GST, or null if unsure,
-  "marketValue": approximate current used/secondary market value in SGD, or null if unsure
+  "purchasePrice": Singapore retail price in SGD including GST as a number e.g. 169.9,
+  "marketValue": current approximate used/secondary market value in SGD as a number
 }
 
-Use null for any field you are not confident about. Prices are in Singapore Dollars (SGD).`;
+Be specific and accurate. Singapore LEGO prices include 9% GST. Use null only if you truly do not know.`;
 
-    try {
-      const metaText = await callClaude(apiKey, [{ role: 'user', content: metaPrompt }]);
-      step2 = parseJson(metaText);
-    } catch (_) {}
-  }
-
-  // step2 has name/theme/year/pieceCount from knowledge; step1 has setNumber/condition/notes from image
-  return { ...step2, ...step1 };
+  const text = await callClaude(
+    apiKey,
+    [{ role: 'user', content: prompt }],
+    { max_tokens: 400, model: 'claude-sonnet-4-6' }
+  );
+  return parseJson(text);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1304,7 +1313,10 @@ function renderFormModal(prefill = {}) {
     <div class="form-row">
       <div class="form-group">
         <label>Set Number</label>
-        <input type="text" id="f-setNumber" value="${esc(s.setNumber || '')}" placeholder="75192" class="${prefill.setNumber ? 'ai-filled' : ''}">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="f-setNumber" value="${esc(s.setNumber || '')}" placeholder="75192" class="${prefill.setNumber ? 'ai-filled' : ''}" style="flex:1;min-width:0">
+          ${hasAI ? `<button type="button" id="lookup-btn" onclick="lookupSetFromForm(event)" style="flex-shrink:0;padding:0 12px;height:42px;background:#6D28D9;color:white;border:none;border-radius:10px;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap">🔍 Look up</button>` : ''}
+        </div>
       </div>
       <div class="form-group">
         <label>Year</label>
@@ -1376,6 +1388,33 @@ function renderFormModal(prefill = {}) {
 }
 
 function triggerImagePicker() { $('#image-input')?.click(); }
+
+async function lookupSetFromForm(e) {
+  e.stopPropagation();
+  const cfg = Config.get();
+  if (!cfg?.anthropicKey) { showToast('Add Anthropic API key in Settings first'); return; }
+  const setNumber = $('#f-setNumber')?.value.trim();
+  if (!setNumber) { showToast('Enter a set number first'); return; }
+
+  const btn = $('#lookup-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const meta = await fetchSetMetadata(cfg.anthropicKey.trim(), setNumber);
+    // Only fill fields that are currently empty
+    if (meta.name    && !$('#f-name')?.value.trim())      $('#f-name').value = meta.name;
+    if (meta.theme   && !$('#f-theme')?.value.trim())     $('#f-theme').value = meta.theme;
+    if (meta.year    && !$('#f-year')?.value)             $('#f-year').value = meta.year;
+    if (meta.pieceCount && !$('#f-pieceCount')?.value)    $('#f-pieceCount').value = meta.pieceCount;
+    if (meta.purchasePrice != null && !$('#f-purchasePrice')?.value) $('#f-purchasePrice').value = meta.purchasePrice;
+    if (meta.marketValue   != null && !$('#f-marketValue')?.value)   $('#f-marketValue').value   = meta.marketValue;
+    showToast('Set data filled in — review and adjust if needed.');
+  } catch (err) {
+    showToast('Lookup failed: ' + err.message, 6000);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔍 Look up'; }
+  }
+}
 
 async function reanalyseCurrentImage(e) {
   e.stopPropagation();
