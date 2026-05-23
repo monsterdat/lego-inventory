@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "mpi06p7fwogij",
+    "setNumber": null,
+    "name": "T",
+    "theme": null,
+    "year": null,
+    "pieceCount": null,
+    "condition": "unbuilt",
+    "purchasePrice": null,
+    "marketValue": null,
+    "purchaseDate": null,
+    "notes": null,
+    "imagePath": "images/mpi06p7fwogij.jpg",
+    "updatedAt": "2026-05-23T07:04:35.260Z",
+    "createdAt": "2026-05-23T07:04:35.260Z"
+  }
+]
