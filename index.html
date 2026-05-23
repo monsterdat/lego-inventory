@@ -697,14 +697,26 @@ async function uploadImage(dataUrl, setId) {
 // ─────────────────────────────────────────────────────────────
 // CLAUDE VISION
 // ─────────────────────────────────────────────────────────────
+// Lazily loaded Anthropic SDK instance
+let _anthropicClient = null;
+async function getAnthropicClient(apiKey) {
+  if (_anthropicClient) return _anthropicClient;
+  // Load the official SDK via CDN — it handles CORS via dangerouslyAllowBrowser
+  const { default: Anthropic } = await import('https://esm.sh/@anthropic-ai/sdk');
+  _anthropicClient = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+  return _anthropicClient;
+}
+
 async function analyzeImageWithClaude(dataUrl) {
   const cfg = Config.get();
   if (!cfg?.anthropicKey) throw new Error('No Anthropic API key set in Settings');
 
+  const apiKey = cfg.anthropicKey.trim();
+  if (!apiKey) throw new Error('Anthropic API key is empty. Add it in Settings.');
+
   // Downscale to 800px for the API call — keeps payload small on mobile
   const smallDataUrl = await resizeImageFromDataUrl(dataUrl, 800, 0.82);
   const base64 = smallDataUrl.split(',')[1];
-  const mediaType = 'image/jpeg';
 
   const prompt = `You are analyzing a LEGO product image. The image may show a LEGO box, a built set, or loose pieces.
 
@@ -720,44 +732,33 @@ Extract whatever information you can identify and return ONLY a valid JSON objec
   "notes": "brief relevant observation (e.g. 'Box appears sealed', 'Missing minifigures visible'), or null"
 }`;
 
-  let res;
+  let client;
   try {
-    res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': cfg.anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-calls': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
+    client = await getAnthropicClient(apiKey);
+  } catch (e) {
+    throw new Error('Failed to load Anthropic SDK: ' + e.message);
+  }
+
+  let response;
+  try {
+    response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text', text: prompt }
+        ]
+      }]
     });
-  } catch (networkErr) {
-    throw new Error('Network error reaching Anthropic API. Check your internet connection and that your API key is valid.');
+  } catch (err) {
+    if (err.status === 401) throw new Error('Invalid Anthropic API key — check it in Settings.');
+    if (err.status === 400) throw new Error('Bad request: ' + err.message);
+    throw new Error(err.message || 'Could not reach Anthropic API.');
   }
 
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => ({}));
-    const msg = errBody.error?.message || `Claude API error ${res.status}`;
-    if (res.status === 401) throw new Error('Invalid Anthropic API key. Check Settings.');
-    if (res.status === 400) throw new Error('Bad request: ' + msg);
-    throw new Error(msg);
-  }
-
-  const data = await res.json();
-  const text = data.content[0].text.trim();
-
-  // Extract JSON even if Claude wraps it in markdown
+  const text = response.content[0].text.trim();
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Could not parse Claude response');
   return JSON.parse(jsonMatch[0]);
@@ -1403,6 +1404,7 @@ function renderSettingsView() {
 }
 
 async function saveSettings() {
+  _anthropicClient = null; // reset cached client when key changes
   const cfg = {
     owner: $('#s-owner').value.trim(),
     repo: $('#s-repo').value.trim(),
