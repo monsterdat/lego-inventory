@@ -1172,7 +1172,7 @@ function renderListView() {
       <div class="stat-pill"><strong>${themes.length}</strong> themes</div>
     </div>
     <div class="search-bar">
-      <input type="text" inputmode="search" placeholder="Search by name, number, theme…" value="${state.search}" id="search-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="text" inputmode="search" placeholder="Search by name, number, theme…" value="${state.search}" id="search-input" autocomplete="search" autocorrect="off" autocapitalize="none" spellcheck="false" name="lego-search">
       <select class="filter-select" id="filter-condition">
         <option value="">All</option>
         <option value="built" ${state.filterCondition === 'built' ? 'selected' : ''}>Built</option>
@@ -1672,13 +1672,7 @@ function renderDashboardView() {
   const ownerAvatarColors = ['#E3000B','#D97706','#059669','#7C3AED','#2563EB'];
 
   $('#view-dashboard').innerHTML = `
-    <div class="dash-hero">
-      <div class="dash-hero-label">Market Value</div>
-      <div class="dash-hero-value">${totalMarket > 0 ? fmtCurrency(totalMarket) : '—'}</div>
-      <div class="dash-hero-sub">${inv.length} sets · ${themes.length} theme${themes.length !== 1 ? 's' : ''}</div>
-    </div>
-
-    <div class="dash-body">
+    <div class="dash-body" style="padding-top:16px">
 
       <div class="dash-section-label">Financials</div>
       <div class="dash-2col" style="margin-bottom:10px">
