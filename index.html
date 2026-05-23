@@ -1162,76 +1162,110 @@ function switchView(view) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// LIST VIEW
+// LIST VIEW — shell rendered once; only cards update on search
 // ─────────────────────────────────────────────────────────────
 function renderListView() {
+  if (!$('#list-cards')) {
+    // First render: build the stable shell (stats + search bar)
+    $('#view-list').innerHTML = `
+      <div id="list-stats" class="stats-bar"></div>
+      <div class="search-bar">
+        <input type="text" inputmode="search" placeholder="Search…" id="search-input"
+          autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+          role="searchbox" aria-label="Search sets">
+        <select class="filter-select" id="filter-condition">
+          <option value="">All</option>
+          <option value="built">Built</option>
+          <option value="unbuilt">Unbuilt</option>
+          <option value="incomplete">Incomplete</option>
+        </select>
+        <span id="filter-theme-slot"></span>
+      </div>
+      <div id="list-cards"></div>
+    `;
+    // Listeners attached once — they only call renderListCards, never re-render the shell
+    $('#search-input').addEventListener('input', e => {
+      state.search = e.target.value;
+      renderListCards();
+    });
+    $('#filter-condition').addEventListener('change', e => {
+      state.filterCondition = e.target.value;
+      renderListCards();
+    });
+  }
+
+  // Sync search value (in case state.search was cleared)
+  const inp = $('#search-input');
+  if (inp && inp !== document.activeElement) inp.value = state.search;
+
+  // Sync condition filter
+  $('#filter-condition').value = state.filterCondition;
+
+  // Update stats bar
+  const themes = [...new Set(state.inventory.map(s => s.theme).filter(Boolean))].sort();
+  const totalValue = state.inventory.reduce((a, s) => a + (parseFloat(s.marketValue) || 0), 0);
+  $('#list-stats').innerHTML = `
+    <div class="stat-pill"><strong>${state.inventory.length}</strong> sets</div>
+    ${totalValue > 0 ? `<div class="stat-pill">Value <strong>${fmtCurrency(totalValue)}</strong></div>` : ''}
+    <div class="stat-pill"><strong>${state.inventory.filter(s => s.condition === 'built').length}</strong> built</div>
+    <div class="stat-pill"><strong>${state.inventory.filter(s => s.condition === 'unbuilt').length}</strong> unbuilt</div>
+    <div class="stat-pill"><strong>${themes.length}</strong> themes</div>
+  `;
+
+  // Update theme filter (only when theme list changes)
+  const slot = $('#filter-theme-slot');
+  if (slot) {
+    slot.innerHTML = themes.length > 1 ? `
+      <select class="filter-select" id="filter-theme">
+        <option value="">All themes</option>
+        ${themes.map(t => `<option value="${t}" ${state.filterTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
+      </select>` : '';
+    $('#filter-theme')?.addEventListener('change', e => {
+      state.filterTheme = e.target.value;
+      renderListCards();
+    });
+  }
+
+  renderListCards();
+}
+
+function renderListCards() {
+  const container = $('#list-cards');
+  if (!container) return;
   const cfg = Config.get();
   const repoBase = cfg ? `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/main/` : '';
-  const themes = [...new Set(state.inventory.map(s => s.theme).filter(Boolean))].sort();
-
+  const q = state.search.toLowerCase();
   const filtered = state.inventory.filter(s => {
-    const q = state.search.toLowerCase();
     const matchSearch = !q || [s.name, s.setNumber, s.theme].some(f => f?.toLowerCase().includes(q));
-    const matchCond = !state.filterCondition || s.condition === state.filterCondition;
-    const matchTheme = !state.filterTheme || s.theme === state.filterTheme;
+    const matchCond   = !state.filterCondition || s.condition === state.filterCondition;
+    const matchTheme  = !state.filterTheme || s.theme === state.filterTheme;
     return matchSearch && matchCond && matchTheme;
   });
 
-  const totalValue = state.inventory.reduce((acc, s) => acc + (parseFloat(s.marketValue) || 0), 0);
-
-  $('#view-list').innerHTML = `
-    <div class="stats-bar">
-      <div class="stat-pill"><strong>${state.inventory.length}</strong> sets</div>
-      ${totalValue > 0 ? `<div class="stat-pill">Value <strong>${fmtCurrency(totalValue)}</strong></div>` : ''}
-      <div class="stat-pill"><strong>${state.inventory.filter(s => s.condition === 'built').length}</strong> built</div>
-      <div class="stat-pill"><strong>${state.inventory.filter(s => s.condition === 'unbuilt').length}</strong> unbuilt</div>
-      <div class="stat-pill"><strong>${themes.length}</strong> themes</div>
-    </div>
-    <div class="search-bar">
-      <input type="text" inputmode="search" placeholder="Search by name, number, theme…" value="${state.search}" id="search-input" autocomplete="search" autocorrect="off" autocapitalize="none" spellcheck="false" name="lego-search">
-      <select class="filter-select" id="filter-condition">
-        <option value="">All</option>
-        <option value="built" ${state.filterCondition === 'built' ? 'selected' : ''}>Built</option>
-        <option value="unbuilt" ${state.filterCondition === 'unbuilt' ? 'selected' : ''}>Unbuilt</option>
-        <option value="incomplete" ${state.filterCondition === 'incomplete' ? 'selected' : ''}>Incomplete</option>
-      </select>
-      ${themes.length > 1 ? `
-        <select class="filter-select" id="filter-theme">
-          <option value="">All themes</option>
-          ${themes.map(t => `<option value="${t}" ${state.filterTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
-        </select>` : ''}
-    </div>
-    ${filtered.length === 0
-      ? `<div class="empty-state">
-           <div class="icon">🧱</div>
-           <h3>${state.inventory.length === 0 ? 'No sets yet' : 'No matches'}</h3>
-           <p>${state.inventory.length === 0 ? 'Tap + to add your first LEGO set' : 'Try adjusting your search or filters'}</p>
-         </div>`
-      : `<div class="grid">
-           ${filtered.map(s => `
-             <div class="set-card" onclick="openDetailModal('${s.id}')">
-               ${s.imagePath
-                 ? `<img class="card-img" src="${repoBase}${s.imagePath}" alt="${esc(s.name)}" loading="lazy"
-                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-                 : ''}
-               <div class="card-no-img" ${s.imagePath ? 'style="display:none"' : ''}>🧱</div>
-               <div class="card-body">
-                 ${s.setNumber ? `<div class="card-number">${esc(s.setNumber)}</div>` : ''}
-                 <div class="card-name">${esc(s.name || 'Unnamed set')}</div>
-                 <div class="badges">
-                   <span class="badge badge-${s.condition || 'unbuilt'}">${s.condition || 'unbuilt'}</span>
-                   ${s.theme ? `<span class="badge badge-theme">${esc(s.theme)}</span>` : ''}
-                 </div>
+  container.innerHTML = filtered.length === 0
+    ? `<div class="empty-state">
+         <div class="icon">🧱</div>
+         <h3>${state.inventory.length === 0 ? 'No sets yet' : 'No matches'}</h3>
+         <p>${state.inventory.length === 0 ? 'Tap + to add your first LEGO set' : 'Try adjusting your search or filters'}</p>
+       </div>`
+    : `<div class="grid">
+         ${filtered.map(s => `
+           <div class="set-card" onclick="openDetailModal('${s.id}')">
+             ${s.imagePath
+               ? `<img class="card-img" src="${repoBase}${s.imagePath}" alt="${esc(s.name)}" loading="lazy"
+                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+               : ''}
+             <div class="card-no-img" ${s.imagePath ? 'style="display:none"' : ''}>🧱</div>
+             <div class="card-body">
+               ${s.setNumber ? `<div class="card-number">${esc(s.setNumber)}</div>` : ''}
+               <div class="card-name">${esc(s.name || 'Unnamed set')}</div>
+               <div class="badges">
+                 <span class="badge badge-${s.condition || 'unbuilt'}">${s.condition || 'unbuilt'}</span>
+                 ${s.theme ? `<span class="badge badge-theme">${esc(s.theme)}</span>` : ''}
                </div>
              </div>
-           `).join('')}
-         </div>`
-    }
-  `;
-
-  $('#search-input').addEventListener('input', e => { state.search = e.target.value; renderListView(); });
-  $('#filter-condition')?.addEventListener('change', e => { state.filterCondition = e.target.value; renderListView(); });
-  $('#filter-theme')?.addEventListener('change', e => { state.filterTheme = e.target.value; renderListView(); });
+           </div>`).join('')}
+       </div>`;
 }
 
 // ─────────────────────────────────────────────────────────────
