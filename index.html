@@ -27,13 +27,15 @@
       background: var(--light-gray);
       color: var(--dark);
       min-height: 100dvh;
-      padding-bottom: 70px;
+      /* Push content above the nav bar + iPhone home indicator */
+      padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
     }
 
     header {
       background: var(--red);
       color: white;
-      padding: 16px 20px;
+      /* Account for iPhone status bar / Dynamic Island */
+      padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -52,11 +54,13 @@
       border-top: 1px solid var(--border);
       display: flex;
       z-index: 100;
+      /* Extend behind iPhone home indicator */
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     nav button {
       flex: 1;
-      padding: 10px 0 8px;
+      padding: 10px 0 10px;
       border: none;
       background: none;
       cursor: pointer;
@@ -67,6 +71,8 @@
       font-size: 0.68rem;
       color: var(--gray);
       transition: color 0.2s;
+      /* Minimum tap target */
+      min-height: 48px;
     }
 
     nav button.active { color: var(--red); }
@@ -74,6 +80,8 @@
 
     .view { display: none; padding: 16px; }
     .view.active { display: block; }
+    /* Dashboard has no side padding — handled by inner .dash-body */
+    #view-dashboard.active { padding: 0; }
 
     /* Stats */
     .stats-bar {
@@ -107,12 +115,13 @@
 
     .search-bar input {
       flex: 1;
-      padding: 10px 14px;
+      padding: 12px 14px;
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      font-size: 1rem;
+      font-size: 16px;
       background: white;
       outline: none;
+      min-height: 48px;
     }
     .search-bar input:focus { border-color: var(--red); }
 
@@ -216,9 +225,11 @@
       border-radius: 20px 20px 0 0;
       width: 100%;
       max-width: 600px;
-      max-height: 92dvh;
+      /* Leave room for iPhone home indicator at bottom */
+      max-height: calc(92dvh - env(safe-area-inset-bottom, 0px));
       overflow-y: auto;
-      padding: 20px 20px 32px;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 20px calc(32px + env(safe-area-inset-bottom, 0px));
       animation: slideUp 0.28s ease;
     }
     @keyframes slideUp {
@@ -269,14 +280,17 @@
     .form-group select,
     .form-group textarea {
       width: 100%;
-      padding: 12px 14px;
+      padding: 13px 14px;
       border: 1px solid var(--border);
       border-radius: 10px;
-      font-size: 0.97rem;
+      /* 16px prevents iOS zoom on focus */
+      font-size: 16px;
       background: white;
       outline: none;
       font-family: inherit;
       transition: border-color 0.15s;
+      /* Comfortable touch target */
+      min-height: 48px;
     }
     .form-group input:focus,
     .form-group select:focus,
@@ -1131,7 +1145,8 @@ function renderApp() {
   $('#detail-modal').addEventListener('click', e => { if (e.target === $('#detail-modal')) closeDetailModal(); });
 
   renderListView();
-  renderSettingsView();
+  // Settings is lazy-rendered on first switch — keeps password inputs out of the DOM
+  // while the user is on Collection, preventing iOS from offering password autofill
 }
 
 function switchView(view) {
@@ -1143,6 +1158,7 @@ function switchView(view) {
   const fab = $('#fab');
   if (fab) fab.style.display = view === 'list' ? 'flex' : 'none';
   if (view === 'dashboard') renderDashboardView();
+  if (view === 'settings') renderSettingsView();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1675,18 +1691,24 @@ function renderDashboardView() {
     <div class="dash-body" style="padding-top:16px">
 
       <div class="dash-section-label">Financials</div>
+      ${totalInvested === 0 && totalMarket === 0 ? `
+        <div class="dcard" style="margin-bottom:10px;text-align:center;padding:20px">
+          <div style="font-size:1.5rem;margin-bottom:8px">💰</div>
+          <div style="font-size:0.9rem;font-weight:600;color:var(--dark);margin-bottom:4px">No prices recorded yet</div>
+          <div style="font-size:0.8rem;color:var(--gray);line-height:1.5">Open a set, enter a purchase price and market value, then save. Or use the 🔍 Look up button with a set number.</div>
+        </div>` : `
       <div class="dash-2col" style="margin-bottom:10px">
         <div class="dcard">
           <div class="dcard-label">Total Invested</div>
-          <div class="dcard-value">${totalInvested > 0 ? fmtCurrency(totalInvested) : '—'}</div>
+          <div class="dcard-value">${fmtCurrency(totalInvested)}</div>
         </div>
         <div class="dcard">
           <div class="dcard-label">Market Value</div>
-          <div class="dcard-value">${totalMarket > 0 ? fmtCurrency(totalMarket) : '—'}</div>
+          <div class="dcard-value">${fmtCurrency(totalMarket)}</div>
         </div>
       </div>
       ${totalInvested > 0 && totalMarket > 0 ? `
-      <div class="dash-2col">
+      <div class="dash-2col" style="margin-bottom:10px">
         <div class="dcard">
           <div class="dcard-label">Gain / Loss</div>
           <div class="dcard-value ${gain >= 0 ? 'pos' : 'neg'}">${gain >= 0 ? '+' : ''}${fmtCurrency(gain)}</div>
@@ -1696,6 +1718,7 @@ function renderDashboardView() {
           <div class="dcard-value ${returnPct >= 0 ? 'pos' : 'neg'}">${returnPct >= 0 ? '+' : ''}${returnPct.toFixed(1)}%</div>
         </div>
       </div>` : ''}
+      `}
 
       ${ownerRows.length > 0 ? `
       <div class="dash-section-label">By Owner</div>
@@ -1810,7 +1833,7 @@ async function saveSettings() {
     if (!ok) throw new Error('Could not connect to GitHub repository');
     await loadInventory();
     renderListView();
-    renderSettingsView();
+    if (state.view === 'settings') renderSettingsView();
     showToast('Settings saved!');
   } catch (err) {
     showToast('Error: ' + err.message);
