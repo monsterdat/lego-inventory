@@ -528,8 +528,10 @@
       opacity: 0;
       transition: opacity 0.25s;
       pointer-events: none;
-      white-space: nowrap;
+      white-space: pre-wrap;
+      word-break: break-word;
       max-width: calc(100vw - 40px);
+      text-align: center;
     }
     .toast.show { opacity: 1; }
 
@@ -699,8 +701,10 @@ async function analyzeImageWithClaude(dataUrl) {
   const cfg = Config.get();
   if (!cfg?.anthropicKey) throw new Error('No Anthropic API key set in Settings');
 
-  const base64 = dataUrl.split(',')[1];
-  const mediaType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+  // Downscale to 800px for the API call — keeps payload small on mobile
+  const smallDataUrl = await resizeImageFromDataUrl(dataUrl, 800, 0.82);
+  const base64 = smallDataUrl.split(',')[1];
+  const mediaType = 'image/jpeg';
 
   const prompt = `You are analyzing a LEGO product image. The image may show a LEGO box, a built set, or loose pieces.
 
@@ -716,30 +720,38 @@ Extract whatever information you can identify and return ONLY a valid JSON objec
   "notes": "brief relevant observation (e.g. 'Box appears sealed', 'Missing minifigures visible'), or null"
 }`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': cfg.anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-direct-browser-calls': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-          { type: 'text', text: prompt }
-        ]
-      }]
-    })
-  });
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': cfg.anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-calls': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+  } catch (networkErr) {
+    throw new Error('Network error reaching Anthropic API. Check your internet connection and that your API key is valid.');
+  }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Claude API error ${res.status}`);
+    const errBody = await res.json().catch(() => ({}));
+    const msg = errBody.error?.message || `Claude API error ${res.status}`;
+    if (res.status === 401) throw new Error('Invalid Anthropic API key. Check Settings.');
+    if (res.status === 400) throw new Error('Bad request: ' + msg);
+    throw new Error(msg);
   }
 
   const data = await res.json();
@@ -769,6 +781,22 @@ function resizeImage(file, maxWidth = 1200, quality = 0.88) {
     };
     img.onerror = reject;
     img.src = url;
+  });
+}
+
+function resizeImageFromDataUrl(dataUrl, maxWidth = 800, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
   });
 }
 
@@ -1214,7 +1242,7 @@ function attachImagePickerHandler() {
           attachImagePickerHandler();
         }
         if ($('#save-btn')) $('#save-btn').disabled = false;
-        showToast('AI analysis failed: ' + err.message);
+        showToast('AI analysis failed:\n' + err.message, 6000);
       }
     } else {
       // No AI — just show preview
