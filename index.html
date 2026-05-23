@@ -1150,6 +1150,11 @@ function renderApp() {
 }
 
 function switchView(view) {
+  // Wipe settings DOM when leaving it — removes password inputs so iOS won't
+  // associate them with other fields (search bar autofill prompt)
+  if (state.view === 'settings' && view !== 'settings') {
+    $('#view-settings').innerHTML = '';
+  }
   state.view = view;
   $$('.view').forEach(v => v.classList.remove('active'));
   $$('nav button').forEach(b => b.classList.remove('active'));
@@ -1170,9 +1175,9 @@ function renderListView() {
     $('#view-list').innerHTML = `
       <div id="list-stats" class="stats-bar"></div>
       <div class="search-bar">
-        <input type="text" inputmode="search" placeholder="Search…" id="search-input"
+        <input type="search" placeholder="Search…" id="search-input"
           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-          role="searchbox" aria-label="Search sets">
+          aria-label="Search sets">
         <select class="filter-select" id="filter-condition">
           <option value="">All</option>
           <option value="built">Built</option>
