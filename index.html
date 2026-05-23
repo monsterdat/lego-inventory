@@ -697,16 +697,6 @@ async function uploadImage(dataUrl, setId) {
 // ─────────────────────────────────────────────────────────────
 // CLAUDE VISION
 // ─────────────────────────────────────────────────────────────
-// Lazily loaded Anthropic SDK instance
-let _anthropicClient = null;
-async function getAnthropicClient(apiKey) {
-  if (_anthropicClient) return _anthropicClient;
-  // Load the official SDK via CDN — it handles CORS via dangerouslyAllowBrowser
-  const { default: Anthropic } = await import('https://esm.sh/@anthropic-ai/sdk');
-  _anthropicClient = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
-  return _anthropicClient;
-}
-
 async function analyzeImageWithClaude(dataUrl) {
   const cfg = Config.get();
   if (!cfg?.anthropicKey) throw new Error('No Anthropic API key set in Settings');
@@ -732,33 +722,40 @@ Extract whatever information you can identify and return ONLY a valid JSON objec
   "notes": "brief relevant observation (e.g. 'Box appears sealed', 'Missing minifigures visible'), or null"
 }`;
 
-  let client;
+  let res;
   try {
-    client = await getAnthropicClient(apiKey);
-  } catch (e) {
-    throw new Error('Failed to load Anthropic SDK: ' + e.message);
-  }
-
-  let response;
-  try {
-    response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-          { type: 'text', text: prompt }
-        ]
-      }]
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
     });
   } catch (err) {
-    if (err.status === 401) throw new Error('Invalid Anthropic API key — check it in Settings.');
-    if (err.status === 400) throw new Error('Bad request: ' + err.message);
-    throw new Error(err.message || 'Could not reach Anthropic API.');
+    throw new Error('Network error reaching Anthropic API: ' + err.message);
   }
 
-  const text = response.content[0].text.trim();
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 401) throw new Error('Invalid Anthropic API key — check it in Settings.');
+    throw new Error(`Anthropic API error ${res.status}: ${body?.error?.message || res.statusText}`);
+  }
+
+  const data = await res.json();
+  const text = data.content[0].text.trim();
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Could not parse Claude response');
   return JSON.parse(jsonMatch[0]);
