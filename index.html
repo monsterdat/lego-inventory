@@ -486,6 +486,10 @@
       margin-top: 5px;
       line-height: 1.5;
     }
+    /* Visually mask sensitive fields without using type="text" class="secret-input",
+       which triggers iOS autofill across the entire domain */
+    .secret-input { -webkit-text-security: disc; }
+    .secret-input::placeholder { -webkit-text-security: none; }
 
     /* Setup screen */
     .setup-screen {
@@ -1061,7 +1065,7 @@ function renderSetup() {
         </div>
         <div class="form-group">
           <label>GitHub Personal Access Token</label>
-          <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx" required autocomplete="off">
+          <input type="text" class="secret-input" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx" required autocomplete="off">
           <p style="font-size:0.75rem;color:var(--gray);margin-top:5px;line-height:1.5">
             Create at: GitHub → Settings → Developer settings → Personal access tokens (classic). Needs <strong>repo</strong> scope.
           </p>
@@ -1069,7 +1073,7 @@ function renderSetup() {
         <div class="setup-divider"><span>Optional</span></div>
         <div class="form-group">
           <label>Anthropic API Key</label>
-          <input type="password" id="cfg-anthropic" placeholder="sk-ant-xxxxxxxxxxxx" autocomplete="off">
+          <input type="text" class="secret-input" id="cfg-anthropic" placeholder="sk-ant-xxxxxxxxxxxx" autocomplete="off">
           <p style="font-size:0.75rem;color:var(--gray);margin-top:5px;line-height:1.5">
             Enables AI image recognition to auto-fill set details from photos. Get a key at console.anthropic.com.
           </p>
@@ -1369,29 +1373,29 @@ function renderFormModal(prefill = {}) {
       <div class="form-group">
         <label>Set Number</label>
         <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="f-setNumber" value="${esc(s.setNumber || '')}" placeholder="75192" class="${prefill.setNumber ? 'ai-filled' : ''}" style="flex:1;min-width:0">
+          <input type="text" id="f-setNumber" value="${esc(s.setNumber || '')}" placeholder="75192" class="${prefill.setNumber ? 'ai-filled' : ''}" style="flex:1;min-width:0" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           ${hasAI ? `<button type="button" id="lookup-btn" onclick="lookupSetFromForm(event)" style="flex-shrink:0;padding:0 12px;height:42px;background:#6D28D9;color:white;border:none;border-radius:10px;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap">🔍 Look up</button>` : ''}
         </div>
       </div>
       <div class="form-group">
         <label>Year</label>
-        <input type="number" id="f-year" value="${s.year || ''}" placeholder="${new Date().getFullYear()}" min="1949" max="${new Date().getFullYear() + 2}" class="${prefill.year ? 'ai-filled' : ''}">
+        <input type="number" id="f-year" value="${s.year || ''}" placeholder="${new Date().getFullYear()}" min="1949" max="${new Date().getFullYear() + 2}" class="${prefill.year ? 'ai-filled' : ''}" autocomplete="off">
       </div>
     </div>
 
     <div class="form-group">
       <label>Set Name *</label>
-      <input type="text" id="f-name" value="${esc(s.name || '')}" placeholder="Millennium Falcon" class="${prefill.name ? 'ai-filled' : ''}">
+      <input type="text" id="f-name" value="${esc(s.name || '')}" placeholder="Millennium Falcon" class="${prefill.name ? 'ai-filled' : ''}" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
 
     <div class="form-row">
       <div class="form-group">
         <label>Theme</label>
-        <input type="text" id="f-theme" value="${esc(s.theme || '')}" placeholder="Star Wars" class="${prefill.theme ? 'ai-filled' : ''}">
+        <input type="text" id="f-theme" value="${esc(s.theme || '')}" placeholder="Star Wars" class="${prefill.theme ? 'ai-filled' : ''}" autocomplete="off" autocorrect="off" spellcheck="false">
       </div>
       <div class="form-group">
         <label>Piece Count</label>
-        <input type="number" id="f-pieceCount" value="${s.pieceCount || ''}" placeholder="7541" class="${prefill.pieceCount ? 'ai-filled' : ''}">
+        <input type="number" id="f-pieceCount" value="${s.pieceCount || ''}" placeholder="7541" class="${prefill.pieceCount ? 'ai-filled' : ''}" autocomplete="off">
       </div>
     </div>
 
@@ -1415,11 +1419,11 @@ function renderFormModal(prefill = {}) {
     <div class="form-row">
       <div class="form-group">
         <label>Purchase Price ($)</label>
-        <input type="number" id="f-purchasePrice" value="${s.purchasePrice ?? ''}" placeholder="0.00" min="0" step="0.01">
+        <input type="number" id="f-purchasePrice" value="${s.purchasePrice ?? ''}" placeholder="0.00" min="0" step="0.01" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Market Value ($)</label>
-        <input type="number" id="f-marketValue" value="${s.marketValue ?? ''}" placeholder="0.00" min="0" step="0.01">
+        <input type="number" id="f-marketValue" value="${s.marketValue ?? ''}" placeholder="0.00" min="0" step="0.01" autocomplete="off">
       </div>
     </div>
 
@@ -1819,7 +1823,7 @@ function renderSettingsView() {
       </div>
       <div class="settings-item">
         <label>Personal Access Token</label>
-        <input type="password" id="s-token" value="${cfg.token || ''}" autocomplete="off">
+        <input type="text" class="secret-input" id="s-token" value="${cfg.token || ''}" autocomplete="off">
       </div>
     </div>
 
@@ -1827,7 +1831,7 @@ function renderSettingsView() {
       <div class="settings-card-title">AI Image Recognition</div>
       <div class="settings-item">
         <label>Anthropic API Key</label>
-        <input type="password" id="s-anthropic" value="${cfg.anthropicKey || ''}" placeholder="sk-ant-…" autocomplete="off">
+        <input type="text" class="secret-input" id="s-anthropic" value="${cfg.anthropicKey || ''}" placeholder="sk-ant-…" autocomplete="off">
         <p class="hint">When set, taking a photo will automatically identify the set and fill in details using Claude AI. Get a key at console.anthropic.com.</p>
       </div>
     </div>
