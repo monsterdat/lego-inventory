@@ -708,18 +708,20 @@ async function analyzeImageWithClaude(dataUrl) {
   const smallDataUrl = await resizeImageFromDataUrl(dataUrl, 800, 0.82);
   const base64 = smallDataUrl.split(',')[1];
 
-  const prompt = `You are analyzing a LEGO product image. The image may show a LEGO box, a built set, or loose pieces.
+  const prompt = `You are analyzing a LEGO product image. The image may show a LEGO box, a built/displayed set, or loose pieces.
 
-Extract whatever information you can identify and return ONLY a valid JSON object with no extra text or markdown. Use null for fields you cannot determine with reasonable confidence.
+PRIORITY: Find the LEGO set number. It is a 4-6 digit number (e.g. 75192, 21325, 10305) printed on the box corner, side panel, instruction booklet cover, or the bottom sticker of a built set. It may be preceded by "#" or the word "Set". Look carefully — it is always present on official LEGO packaging.
+
+Return ONLY a valid JSON object with no extra text, code fences, or markdown. Use null only when you genuinely cannot determine a value.
 
 {
-  "setNumber": "the LEGO set number printed on box (e.g. '75192'), or null",
-  "name": "the official set name, or null",
-  "theme": "the theme/series (e.g. 'Star Wars', 'Technic', 'City', 'Creator'), or null",
-  "year": "4-digit year of release as a number, or null",
-  "pieceCount": "piece/parts count as a number, or null",
+  "setNumber": "4-6 digit set number as a string e.g. '75192', or null",
+  "name": "official set name from the box title, or your best identification of the set, or null",
+  "theme": "theme printed on box e.g. 'Star Wars', 'Technic', 'Icons', 'City', 'Creator Expert', or null",
+  "year": "4-digit release year as a number if visible on box or copyright line, or null",
+  "pieceCount": "piece count as a number if visible on box, or null",
   "condition": "one of: 'built', 'unbuilt', 'incomplete' — your best guess from the image",
-  "notes": "brief relevant observation (e.g. 'Box appears sealed', 'Missing minifigures visible'), or null"
+  "notes": "brief observation e.g. 'Box sealed', 'Missing minifigures', 'Box opened but unbuilt', or null"
 }`;
 
   let res;
@@ -759,6 +761,123 @@ Extract whatever information you can identify and return ONLY a valid JSON objec
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Could not parse Claude response');
   return JSON.parse(jsonMatch[0]);
+}
+
+// ─────────────────────────────────────────────────────────────
+// WEB LOOKUP — BrickEconomy + LEGO Shop SG
+// ─────────────────────────────────────────────────────────────
+async function proxyFetch(url) {
+  // Try corsproxy.io, fall back to allorigins
+  for (const base of [
+    'https://corsproxy.io/?url=',
+    'https://api.allorigins.win/raw?url='
+  ]) {
+    try {
+      const res = await fetch(base + encodeURIComponent(url));
+      if (res.ok) return res.text();
+    } catch (_) {}
+  }
+  throw new Error('All proxies failed for ' + url);
+}
+
+async function getUSDtoSGD() {
+  const res = await fetch('https://open.er-api.com/v6/latest/USD');
+  const data = await res.json();
+  return data.rates?.SGD ?? 1.35;
+}
+
+async function scrapeBrickEconomy(setNum) {
+  const html = await proxyFetch(`https://www.brickeconomy.com/set/${setNum}-1`);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = {};
+
+  // Name from H1
+  const h1 = doc.querySelector('h1');
+  if (h1) out.name = h1.textContent.trim().replace(/\s*\|.*$/, '').trim();
+
+  // Structured info rows — Year, Pieces, Theme
+  doc.querySelectorAll('table tr').forEach(row => {
+    const cells = [...row.querySelectorAll('td, th')];
+    if (cells.length < 2) return;
+    const key = cells[0].textContent.trim().toLowerCase();
+    const val = cells[1].textContent.trim().replace(/,/g, '');
+    if (/year|release/.test(key)) {
+      const m = val.match(/\b(19|20)\d{2}\b/);
+      if (m) out.year = parseInt(m[0]);
+    }
+    if (/piece|part/.test(key)) {
+      const m = val.match(/\d+/);
+      if (m) out.pieceCount = parseInt(m[0]);
+    }
+    if (/^theme$/.test(key)) {
+      out.theme = cells[1].textContent.trim();
+    }
+  });
+
+  // Prices from page text (USD)
+  const text = doc.body.textContent;
+  const retailM = text.match(/retail\s+(?:price)?[^\d$]*\$?\s*([\d,]+\.?\d*)/i);
+  if (retailM) out.retailPriceUSD = parseFloat(retailM[1].replace(/,/g, ''));
+  const mktM = text.match(/(?:value\s+new|current\s+value)[^\d$]*\$?\s*([\d,]+\.?\d*)/i);
+  if (mktM) out.marketValueUSD = parseFloat(mktM[1].replace(/,/g, ''));
+
+  return out;
+}
+
+async function scrapeLegoSG(setNum) {
+  const html = await proxyFetch(`https://www.lego.com/en-sg/search?q=${setNum}`);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = {};
+
+  // LEGO.com is a Next.js app — data is embedded in __NEXT_DATA__
+  const nd = doc.getElementById('__NEXT_DATA__');
+  if (nd) {
+    try {
+      const data = JSON.parse(nd.textContent);
+      const results =
+        data?.props?.pageProps?.initialData?.results ??
+        data?.props?.pageProps?.searchResult?.results ?? [];
+      const p = results[0];
+      if (p) {
+        if (p.name) out.name = p.name;
+        const raw = p.price?.formattedAmount ?? p.prices?.formattedAmount ?? '';
+        const m = raw.match(/([\d,]+\.?\d*)/);
+        if (m) out.priceSGD = parseFloat(m[1].replace(/,/g, ''));
+      }
+    } catch (_) {}
+  }
+
+  return out;
+}
+
+async function lookupSetDetails(setNumber) {
+  const num = String(setNumber).replace(/[-_]\d+$/, '').trim();
+  const [econR, sgR, rateR] = await Promise.allSettled([
+    scrapeBrickEconomy(num),
+    scrapeLegoSG(num),
+    getUSDtoSGD()
+  ]);
+
+  const rate = rateR.status === 'fulfilled' ? rateR.value : 1.35;
+  const merged = {};
+
+  if (econR.status === 'fulfilled') {
+    const e = econR.value;
+    if (e.name) merged.name = e.name;
+    if (e.year) merged.year = e.year;
+    if (e.pieceCount) merged.pieceCount = e.pieceCount;
+    if (e.theme) merged.theme = e.theme;
+    if (e.retailPriceUSD) merged.purchasePrice = +(e.retailPriceUSD * rate).toFixed(2);
+    if (e.marketValueUSD) merged.marketValue = +(e.marketValueUSD * rate).toFixed(2);
+  }
+
+  if (sgR.status === 'fulfilled') {
+    const s = sgR.value;
+    if (s.name) merged.name = s.name;       // LEGO official name takes priority
+    if (s.priceSGD) merged.purchasePrice = s.priceSGD;
+  }
+
+  return merged;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1211,9 +1330,20 @@ function attachImagePickerHandler() {
 
       try {
         const result = await analyzeImageWithClaude(dataUrl);
-        // Re-render form with AI prefill, preserving current image
-        const current = gatherFormValues();
-        renderFormModal({ ...result });
+
+        // If AI found a set number, look up official data + prices
+        let webData = {};
+        if (result.setNumber) {
+          const overlay = document.querySelector('#image-picker .ai-overlay');
+          if (overlay) overlay.innerHTML = `
+            <span class="spinner spinner-purple" style="width:28px;height:28px;border-width:3px"></span>
+            <span>Looking up set data…</span>
+          `;
+          try { webData = await lookupSetDetails(result.setNumber); } catch (_) {}
+        }
+
+        // Web data (official LEGO + prices) overrides AI guesses
+        renderFormModal({ ...result, ...webData });
         // Restore image
         pendingImageDataUrl = dataUrl;
         const newPicker = $('#image-picker');
