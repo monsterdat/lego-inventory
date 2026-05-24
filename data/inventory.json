@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjd4gsi1l0uh",
+    "setNumber": "71040",
+    "name": "Lego Disney Castle",
+    "theme": "Disney",
+    "year": 2016,
+    "pieceCount": 4080,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 469.9,
+    "marketValue": 600,
+    "purchaseDate": null,
+    "notes": "LEGO Disney Castle with minifigures and red airplane model displayed. Set number not visible in image - would need to see box or instruction booklet to identify.",
+    "imagePath": "images/mpjd4gsi1l0uh.jpg",
+    "updatedAt": "2026-05-24T05:54:32.299Z",
+    "createdAt": "2026-05-24T05:54:32.299Z"
+  },
+  {
     "id": "mpjd2c4o13ue6",
     "setNumber": "71006",
     "name": "The Simpsons House",
