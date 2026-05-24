@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjb2p6ankru9",
+    "setNumber": "75827",
+    "name": "Ghostbusters Firehouse Headquarters",
+    "theme": "Icons",
+    "year": 2016,
+    "pieceCount": 4634,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": 800,
+    "purchaseDate": null,
+    "notes": "Factory sealed box with plastic wrap intact",
+    "imagePath": "images/mpjb2p6ankru9.jpg",
+    "updatedAt": "2026-05-24T04:57:10.989Z",
+    "createdAt": "2026-05-24T04:57:10.989Z"
+  },
+  {
     "id": "mpjb1lpjj4pwl",
     "setNumber": "75828",
     "name": "Ghostbusters Ecto-1 & 2",
