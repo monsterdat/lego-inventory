@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjapyjvgbc6b",
+    "setNumber": "10300",
+    "name": "Back to the Future Time Machine",
+    "theme": "Icons",
+    "year": 2022,
+    "pieceCount": 1872,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 239.9,
+    "marketValue": 280,
+    "purchaseDate": null,
+    "notes": "Back to the Future DeLorean set still sealed in plastic wrap",
+    "imagePath": "images/mpjapyjvgbc6b.jpg",
+    "updatedAt": "2026-05-24T04:47:16.559Z",
+    "createdAt": "2026-05-24T04:47:16.559Z"
+  },
+  {
     "id": "mpjaony9pg35l",
     "setNumber": "42111",
     "name": "Dom's Dodge Charger",
