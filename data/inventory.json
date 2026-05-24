@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjaony9pg35l",
+    "setNumber": "42111",
+    "name": "Dom's Dodge Charger",
+    "theme": "Technic",
+    "year": 2020,
+    "pieceCount": 1077,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 199.9,
+    "marketValue": 180,
+    "purchaseDate": null,
+    "notes": "Factory sealed in original packaging. LEGO Technic Fast & Furious Dom's Dodge Charger set.",
+    "imagePath": "images/mpjaony9pg35l.jpg",
+    "updatedAt": "2026-05-24T04:46:16.360Z",
+    "createdAt": "2026-05-24T04:46:16.360Z"
+  },
+  {
     "id": "mpjao2h5mtsm0",
     "setNumber": "10279",
     "name": "Volkswagen T2 Camper Van",
