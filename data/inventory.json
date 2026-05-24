@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjaznw7hsfmk",
+    "setNumber": "42115",
+    "name": "Lamborghini Sián FKP 37",
+    "theme": "Technic",
+    "year": 2020,
+    "pieceCount": 3696,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 899.9,
+    "marketValue": 750,
+    "purchaseDate": null,
+    "notes": "Sealed box with yellow Lamborghini Sián FKP 37 visible through packaging. Box shows wear with creasing and surface marks but appears factory sealed.",
+    "imagePath": "images/mpjaznw7hsfmk.jpg",
+    "updatedAt": "2026-05-24T04:54:49.264Z",
+    "createdAt": "2026-05-24T04:54:49.265Z"
+  },
+  {
     "id": "mpjaxu3nw6ltw",
     "setNumber": "21303",
     "name": "WALL•E",
