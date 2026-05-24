@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjasaoad5f7h",
+    "setNumber": "40517",
+    "name": "Vespa",
+    "theme": "Creator expert",
+    "year": 2022,
+    "pieceCount": 118,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 79.9,
+    "marketValue": 85,
+    "purchaseDate": null,
+    "notes": "Box appears sealed and unopened, displayed on blue storage container",
+    "imagePath": "images/mpjasaoad5f7h.jpg",
+    "updatedAt": "2026-05-24T04:49:05.062Z",
+    "createdAt": "2026-05-24T04:49:05.062Z"
+  },
+  {
     "id": "mpjapyjvgbc6b",
     "setNumber": "10300",
     "name": "Back to the Future Time Machine",
