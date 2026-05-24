@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjcxspluycvq",
+    "setNumber": "42171",
+    "name": "Mercedes-AMG F1 W14 E Performance",
+    "theme": "Technic",
+    "year": 2024,
+    "pieceCount": 1642,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 239.9,
+    "marketValue": 200,
+    "purchaseDate": null,
+    "notes": "F1 car displayed on turquoise background with decorative figurines",
+    "imagePath": "images/mpjcxspluycvq.jpg",
+    "updatedAt": "2026-05-24T05:49:21.674Z",
+    "createdAt": "2026-05-24T05:49:21.674Z"
+  },
+  {
     "id": "mpjbp84lg4p0x",
     "setNumber": "10365",
     "name": "Pirates of the Caribbean",
