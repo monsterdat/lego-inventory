@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjd2c4o13ue6",
+    "setNumber": "71006",
+    "name": "The Simpsons House",
+    "theme": "The Simpsons",
+    "year": 2014,
+    "pieceCount": 2523,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": 450,
+    "purchaseDate": null,
+    "notes": "The Simpsons House LEGO set, fully constructed with minifigures displayed in front",
+    "imagePath": "images/mpjd2c4o13ue6.jpg",
+    "updatedAt": "2026-05-24T05:52:52.460Z",
+    "createdAt": "2026-05-24T05:52:52.460Z"
+  },
+  {
     "id": "mpjcyq4sk9qic",
     "setNumber": "42141",
     "name": "McLaren Formula 1 Race Car",
