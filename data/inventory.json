@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjao2h5mtsm0",
+    "setNumber": "10279",
+    "name": "Volkswagen T2 Camper Van",
+    "theme": "Icon",
+    "year": 2021,
+    "pieceCount": 2207,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 239.9,
+    "marketValue": 280,
+    "purchaseDate": null,
+    "notes": "VW Camper Van set, sealed in original packaging with visible wear on box",
+    "imagePath": "images/mpjao2h5mtsm0.jpg",
+    "updatedAt": "2026-05-24T04:45:48.241Z",
+    "createdAt": "2026-05-24T04:45:48.241Z"
+  },
+  {
     "id": "mpjakp18o08e4",
     "setNumber": "10290",
     "name": "Pickup Truck",
