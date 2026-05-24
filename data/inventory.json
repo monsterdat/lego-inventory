@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjagvhoc4rkc",
+    "setNumber": "10302",
+    "name": "Optimus Prime",
+    "theme": "Icons",
+    "year": 2022,
+    "pieceCount": 1508,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 239.9,
+    "marketValue": 280,
+    "purchaseDate": null,
+    "notes": "Factory sealed with plastic wrap. Set number visible on bottom of box.",
+    "imagePath": "images/mpjagvhoc4rkc.jpg",
+    "updatedAt": "2026-05-24T04:40:12.514Z",
+    "createdAt": "2026-05-24T04:40:12.514Z"
+  },
+  {
     "id": "mpjafumn53klg",
     "setNumber": "10338",
     "name": "Bumblebee",
