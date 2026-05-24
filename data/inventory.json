@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjbgaaeapin8",
+    "setNumber": "10317",
+    "name": "Land Rover Classic Defender 90",
+    "theme": "Icons",
+    "year": 2023,
+    "pieceCount": 2336,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 349.9,
+    "marketValue": 320,
+    "purchaseDate": null,
+    "notes": "Factory sealed LEGO box, visible set number in bottom right corner",
+    "imagePath": "images/mpjbgaaeapin8.jpg",
+    "updatedAt": "2026-05-24T05:07:45.257Z",
+    "createdAt": "2026-05-24T05:07:45.257Z"
+  },
+  {
     "id": "mpjbeq56dnetj",
     "setNumber": "10274",
     "name": "Ghostbusters Ecto-1",
