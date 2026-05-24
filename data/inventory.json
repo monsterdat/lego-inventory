@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjax2yi6ywmx",
+    "setNumber": "76031",
+    "name": "The Hulk Buster Smash",
+    "theme": "Marvel Super Heroes",
+    "year": 2015,
+    "pieceCount": 248,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": 80,
+    "purchaseDate": null,
+    "notes": "Factory sealed in original packaging",
+    "imagePath": "images/mpjax2yi6ywmx.jpg",
+    "updatedAt": "2026-05-24T04:52:49.551Z",
+    "createdAt": "2026-05-24T04:52:49.551Z"
+  },
+  {
     "id": "mpjav2lrxb5d3",
     "setNumber": "10358",
     "name": "Soundwave",
