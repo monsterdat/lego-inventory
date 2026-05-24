@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjdbsf82t11b",
+    "setNumber": "10262",
+    "name": "James Bond Aston Martin DB5",
+    "theme": "Creator Expert",
+    "year": 2018,
+    "pieceCount": 1295,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 199.9,
+    "marketValue": 280,
+    "purchaseDate": null,
+    "notes": "LEGO James Bond Aston Martin DB5 model, appears fully constructed and displayed on wooden surface, but set number not visible in photograph",
+    "imagePath": "images/mpjdbsf82t11b.jpg",
+    "updatedAt": "2026-05-24T06:00:13.883Z",
+    "createdAt": "2026-05-24T06:00:13.883Z"
+  },
+  {
     "id": "mpjd9pylcxqs4",
     "setNumber": "10220",
     "name": "Volkswagen T1 Camper Van",
