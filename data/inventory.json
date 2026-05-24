@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "mpjafumn53klg",
+    "setNumber": "10338",
+    "name": "Bumblebee",
+    "theme": "Transformer",
+    "year": 2024,
+    "pieceCount": 950,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 99.9,
+    "marketValue": 85,
+    "purchaseDate": null,
+    "notes": "Factory sealed LEGO Transformers Bumblebee set, 950 pieces",
+    "imagePath": "images/mpjafumn53klg.jpg",
+    "updatedAt": "2026-05-24T04:39:24.816Z",
+    "createdAt": "2026-05-24T04:39:24.816Z"
+  }
+]
