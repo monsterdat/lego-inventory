@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjbjk6ar7a3e",
+    "setNumber": "42206",
+    "name": "Mercedes-AMG F1 W14 E Performance Pull-Back",
+    "theme": "Technic",
+    "year": 2023,
+    "pieceCount": 1639,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 29.9,
+    "marketValue": 25,
+    "purchaseDate": null,
+    "notes": "Oracle Red Bull Racing F1 car set, sealed box in excellent condition",
+    "imagePath": "images/mpjbjk6ar7a3e.jpg",
+    "updatedAt": "2026-05-24T05:10:17.425Z",
+    "createdAt": "2026-05-24T05:10:17.425Z"
+  },
+  {
     "id": "mpjbhwmim80tn",
     "setNumber": "42207",
     "name": "Ferrari SF-23 F1 Car",
