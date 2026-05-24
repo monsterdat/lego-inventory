@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjd87fk0fcty",
+    "setNumber": "10252",
+    "name": "Volkswagen Beetle",
+    "theme": "Creator Expert",
+    "year": 2016,
+    "pieceCount": 1167,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 119.9,
+    "marketValue": 180,
+    "purchaseDate": null,
+    "notes": "Built LEGO vehicle with blue Volkswagen Beetle base and removable accessories (airplane and red cooler/cargo). Set number not visible in image.",
+    "imagePath": "images/mpjd87fk0fcty.jpg",
+    "updatedAt": "2026-05-24T05:57:26.782Z",
+    "createdAt": "2026-05-24T05:57:26.782Z"
+  },
+  {
     "id": "mpjd6h9sfofx1",
     "setNumber": "10271",
     "name": "Fiat 500",
