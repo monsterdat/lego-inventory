@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjd9pylcxqs4",
+    "setNumber": "10220",
+    "name": "Volkswagen T1 Camper Van",
+    "theme": "Icons",
+    "year": 2011,
+    "pieceCount": 1332,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": 350,
+    "purchaseDate": null,
+    "notes": "LEGO Volkswagen T1 Camper Van, red and cream colored, appears complete and well-built",
+    "imagePath": "images/mpjd9pylcxqs4.jpg",
+    "updatedAt": "2026-05-24T05:58:37.322Z",
+    "createdAt": "2026-05-24T05:58:37.322Z"
+  },
+  {
     "id": "mpjd87fk0fcty",
     "setNumber": "10252",
     "name": "Volkswagen Beetle",
