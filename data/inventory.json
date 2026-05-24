@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjajsyc4cqfp",
+    "setNumber": "10298",
+    "name": "Vespa 125",
+    "theme": "Icons",
+    "year": 2022,
+    "pieceCount": 1106,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 119.9,
+    "marketValue": 130,
+    "purchaseDate": null,
+    "notes": "Factory sealed LEGO set, Vespa 125 model, 1106 pieces",
+    "imagePath": "images/mpjajsyc4cqfp.jpg",
+    "updatedAt": "2026-05-24T04:42:29.035Z",
+    "createdAt": "2026-05-24T04:42:29.035Z"
+  },
+  {
     "id": "mpjagvhoc4rkc",
     "setNumber": "10302",
     "name": "Optimus Prime",
