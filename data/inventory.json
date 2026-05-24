@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjakp18o08e4",
+    "setNumber": "10290",
+    "name": "Pickup Truck",
+    "theme": "Icons",
+    "year": 2022,
+    "pieceCount": 1677,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 239.9,
+    "marketValue": 200,
+    "purchaseDate": null,
+    "notes": "Factory sealed box with plastic wrap intact",
+    "imagePath": "images/mpjakp18o08e4.jpg",
+    "updatedAt": "2026-05-24T04:43:10.591Z",
+    "createdAt": "2026-05-24T04:43:10.591Z"
+  },
+  {
     "id": "mpjajsyc4cqfp",
     "setNumber": "10298",
     "name": "Vespa 125",
