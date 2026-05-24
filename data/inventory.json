@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjd6h9sfofx1",
+    "setNumber": "10271",
+    "name": "Fiat 500",
+    "theme": "Icons",
+    "year": 2020,
+    "pieceCount": 960,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 119.9,
+    "marketValue": 150,
+    "purchaseDate": null,
+    "notes": "LEGO car appears to be a built set with accessories displayed, but set number is not clearly visible in the image",
+    "imagePath": "images/mpjd6h9sfofx1.jpg",
+    "updatedAt": "2026-05-24T05:56:06.521Z",
+    "createdAt": "2026-05-24T05:56:06.521Z"
+  },
+  {
     "id": "mpjd4gsi1l0uh",
     "setNumber": "71040",
     "name": "Lego Disney Castle",
