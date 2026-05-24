@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjb5bz00pj7i",
+    "setNumber": "10258",
+    "name": "London Bus",
+    "theme": "Creator Expert",
+    "year": 2017,
+    "pieceCount": 1686,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 199.9,
+    "marketValue": 220,
+    "purchaseDate": null,
+    "notes": "Factory sealed in original plastic wrap, London Bus Creator Expert set",
+    "imagePath": "images/mpjb5bz00pj7i.jpg",
+    "updatedAt": "2026-05-24T04:59:13.662Z",
+    "createdAt": "2026-05-24T04:59:13.662Z"
+  },
+  {
     "id": "mpjb2p6ankru9",
     "setNumber": "75827",
     "name": "Ghostbusters Firehouse Headquarters",
