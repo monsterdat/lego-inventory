@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjbhwmim80tn",
+    "setNumber": "42207",
+    "name": "Ferrari SF-23 F1 Car",
+    "theme": "Technic",
+    "year": 2025,
+    "pieceCount": 868,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 119.9,
+    "marketValue": null,
+    "purchaseDate": null,
+    "notes": "LEGO Technic Ferrari SF-24, sealed box visible at bottom with piece count 1361",
+    "imagePath": "images/mpjbhwmim80tn.jpg",
+    "updatedAt": "2026-05-24T05:09:00.600Z",
+    "createdAt": "2026-05-24T05:09:00.600Z"
+  },
+  {
     "id": "mpjbgaaeapin8",
     "setNumber": "10317",
     "name": "Land Rover Classic Defender 90",
