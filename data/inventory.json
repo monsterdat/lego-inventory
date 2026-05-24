@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjb1lpjj4pwl",
+    "setNumber": "75828",
+    "name": "Ghostbusters Ecto-1 & 2",
+    "theme": "Ghostbusters",
+    "year": 2016,
+    "pieceCount": 556,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": 120,
+    "purchaseDate": null,
+    "notes": "Factory sealed in original packaging, 2016 Ghostbusters movie set",
+    "imagePath": "images/mpjb1lpjj4pwl.jpg",
+    "updatedAt": "2026-05-24T04:56:19.555Z",
+    "createdAt": "2026-05-24T04:56:19.555Z"
+  },
+  {
     "id": "mpjb0s1kvjiu0",
     "setNumber": "21306",
     "name": "Yellow Submarine",
