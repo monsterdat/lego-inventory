@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjbavcenapv0",
+    "setNumber": "71016",
+    "name": "The Kwik-E-Mart",
+    "theme": "The Simpsons",
+    "year": 2015,
+    "pieceCount": 2232,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": 400,
+    "purchaseDate": null,
+    "notes": "The Simpsons Kwik-E-Mart set, sealed in original packaging",
+    "imagePath": "images/mpjbavcenapv0.jpg",
+    "updatedAt": "2026-05-24T05:03:32.324Z",
+    "createdAt": "2026-05-24T05:03:32.324Z"
+  },
+  {
     "id": "mpjb9u6trq68z",
     "setNumber": "75639",
     "name": "One piece the going merry pirate ship",
