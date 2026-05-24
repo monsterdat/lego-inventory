@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjb0s1kvjiu0",
+    "setNumber": "21306",
+    "name": "Yellow Submarine",
+    "theme": "Ideas",
+    "year": 2016,
+    "pieceCount": 553,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 79.9,
+    "marketValue": 180,
+    "purchaseDate": null,
+    "notes": "Sealed box, The Beatles Yellow Submarine set",
+    "imagePath": "images/mpjb0s1kvjiu0.jpg",
+    "updatedAt": "2026-05-24T04:55:41.083Z",
+    "createdAt": "2026-05-24T04:55:41.083Z"
+  },
+  {
     "id": "mpjaznw7hsfmk",
     "setNumber": "42115",
     "name": "Lamborghini Sián FKP 37",
