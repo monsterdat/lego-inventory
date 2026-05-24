@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjbc7e081ove",
+    "setNumber": "71411",
+    "name": "The Mighty Bowser",
+    "theme": "Super Mario",
+    "year": 2022,
+    "pieceCount": 2807,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 269.9,
+    "marketValue": 280,
+    "purchaseDate": null,
+    "notes": "LEGO Super Mario The Mighty Bowser set, still sealed in original packaging, 2807 pcs",
+    "imagePath": "images/mpjbc7e081ove.jpg",
+    "updatedAt": "2026-05-24T05:04:34.486Z",
+    "createdAt": "2026-05-24T05:04:34.486Z"
+  },
+  {
     "id": "mpjbavcenapv0",
     "setNumber": "71016",
     "name": "The Kwik-E-Mart",
