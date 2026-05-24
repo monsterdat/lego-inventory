@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjav2lrxb5d3",
+    "setNumber": "10358",
+    "name": "Soundwave",
+    "theme": "Transformer",
+    "year": 2025,
+    "pieceCount": 1505,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 44.9,
+    "marketValue": 40,
+    "purchaseDate": null,
+    "notes": "Set appears factory sealed in original packaging",
+    "imagePath": "images/mpjav2lrxb5d3.jpg",
+    "updatedAt": "2026-05-24T04:51:15.251Z",
+    "createdAt": "2026-05-24T04:51:15.251Z"
+  },
+  {
     "id": "mpjasaoad5f7h",
     "setNumber": "40517",
     "name": "Vespa",
