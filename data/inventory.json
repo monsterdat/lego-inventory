@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjbeq56dnetj",
+    "setNumber": "10274",
+    "name": "Ghostbusters Ecto-1",
+    "theme": "Ghostbusters",
+    "year": 2016,
+    "pieceCount": 2352,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 249.9,
+    "marketValue": 120,
+    "purchaseDate": null,
+    "notes": "Ghostbusters Ecto-1 set, appears to be displayed as a built model",
+    "imagePath": "images/mpjbeq56dnetj.jpg",
+    "updatedAt": "2026-05-24T05:06:32.555Z",
+    "createdAt": "2026-05-24T05:06:32.555Z"
+  },
+  {
     "id": "mpjbc7e081ove",
     "setNumber": "71411",
     "name": "The Mighty Bowser",
