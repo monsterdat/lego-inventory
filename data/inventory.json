@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpjcyq4sk9qic",
+    "setNumber": "42141",
+    "name": "McLaren Formula 1 Race Car",
+    "theme": "Technic",
+    "year": 2022,
+    "pieceCount": 1432,
+    "condition": "built",
+    "owner": "CK",
+    "purchasePrice": 269.9,
+    "marketValue": 220,
+    "purchaseDate": null,
+    "notes": "McLaren F1 race car, displayed in shadow box, appears to be complete and well-maintained",
+    "imagePath": "images/mpjcyq4sk9qic.jpg",
+    "updatedAt": "2026-05-24T05:50:04.896Z",
+    "createdAt": "2026-05-24T05:50:04.896Z"
+  },
+  {
     "id": "mpjcxspluycvq",
     "setNumber": "42171",
     "name": "Mercedes-AMG F1 W14 E Performance",
