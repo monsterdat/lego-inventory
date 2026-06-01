@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpuw9ndp08f69",
+    "setNumber": "77984",
+    "name": "Jurassic Park jeep Wrangler",
+    "theme": "Icons",
+    "year": 2022,
+    "pieceCount": 1924,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 169.9,
+    "marketValue": 150,
+    "purchaseDate": null,
+    "notes": "Sealed LEGO Jurassic Park Jeep Wrangler set, 1924 pieces, age 18+",
+    "imagePath": "images/mpuw9ndp08f69.jpg",
+    "updatedAt": "2026-06-01T07:35:55.236Z",
+    "createdAt": "2026-06-01T07:35:55.236Z"
+  },
+  {
     "id": "mpuw7msrpli2y",
     "setNumber": "21367",
     "name": "Tintin Moon Rocket",
