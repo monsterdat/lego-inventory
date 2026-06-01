@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpuw5ieev9o5u",
+    "setNumber": "42228",
+    "name": "McLaren formula 1 MCL39",
+    "theme": "Technic",
+    "year": 2026,
+    "pieceCount": 1675,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": null,
+    "marketValue": null,
+    "purchaseDate": null,
+    "notes": "LEGO Technic McLaren Formula 1 Team MCL39, sealed box in excellent condition",
+    "imagePath": "images/mpuw5ieev9o5u.jpg",
+    "updatedAt": "2026-06-01T07:32:42.487Z",
+    "createdAt": "2026-06-01T07:32:42.487Z"
+  },
+  {
     "id": "mpuvzvs3699oo",
     "setNumber": "75640",
     "name": "Onepiece Baratie Floating Restaurant",
