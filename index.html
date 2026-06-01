@@ -828,7 +828,7 @@ async function analyzeImageWithClaude(dataUrl) {
   const apiKey = cfg.anthropicKey.trim();
   if (!apiKey) throw new Error('Anthropic API key is empty. Add it in Settings.');
 
-  const smallDataUrl = await resizeImageFromDataUrl(dataUrl, 800, 0.82);
+  const smallDataUrl = await resizeImageFromDataUrl(dataUrl, 1200, 0.88);
   const base64 = smallDataUrl.split(',')[1];
 
   // Step 1: Image OCR — focused only on reading the set number and condition
@@ -919,6 +919,17 @@ async function scrapeBrickEconomy(setNum) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const out = {};
 
+  // Set name from h1 or page title
+  const h1 = doc.querySelector('h1');
+  if (h1) {
+    const nameText = h1.textContent.trim();
+    if (nameText && !/brickeconomy/i.test(nameText)) out.name = nameText;
+  }
+  if (!out.name) {
+    const titleMatch = doc.title.match(/^\d+[-–]\d+\s+(.+?)\s*[-–|]/);
+    if (titleMatch) out.name = titleMatch[1].trim();
+  }
+
   // Specs table rows: Year, Pieces, Theme
   doc.querySelectorAll('.contentrow, table tr').forEach(row => {
     const cells = [...row.querySelectorAll('td, th, .rowlabel, .rowvalue')];
@@ -952,7 +963,6 @@ async function scrapeBrickEconomy(setNum) {
 
 
 async function lookupSetDetails(setNumber) {
-  // Web lookup only supplements Claude's knowledge with live BrickEconomy market data
   const num = String(setNumber).replace(/[-_]\d+$/, '').trim();
   const [econR, rateR] = await Promise.allSettled([scrapeBrickEconomy(num), getUSDtoSGD()]);
 
@@ -960,7 +970,12 @@ async function lookupSetDetails(setNumber) {
   if (econR.status === 'fulfilled') {
     const e = econR.value;
     const rate = rateR.status === 'fulfilled' ? rateR.value : 1.35;
-    // Only use BrickEconomy market value (live secondary market) — retail price comes from Claude
+    // Use all available fields — critical for sets released after the model's knowledge cutoff
+    if (e.name) merged.name = e.name;
+    if (e.theme) merged.theme = e.theme;
+    if (e.year) merged.year = e.year;
+    if (e.pieceCount) merged.pieceCount = e.pieceCount;
+    if (e.retailPriceUSD) merged.purchasePrice = +(e.retailPriceUSD * rate).toFixed(2);
     if (e.marketValueUSD) merged.marketValue = +(e.marketValueUSD * rate).toFixed(2);
   }
   return merged;
