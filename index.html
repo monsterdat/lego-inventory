@@ -963,15 +963,57 @@ async function scrapeBrickEconomy(setNum) {
 }
 
 
+function medianPrice(prices) {
+  if (!prices.length) return null;
+  const s = [...prices].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m];
+}
+
+async function scrapeEbaySold(setNum) {
+  const q = encodeURIComponent(`lego ${setNum}`);
+  const html = await proxyFetch(`https://www.ebay.com/sch/i.html?_nkw=${q}&LH_Sold=1&LH_Complete=1&_sop=13`);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const prices = [];
+  doc.querySelectorAll('.s-item__price').forEach(el => {
+    const m = el.textContent.match(/\$([\d,]+\.?\d*)/);
+    if (m) {
+      const p = parseFloat(m[1].replace(/,/g, ''));
+      if (p > 5) prices.push(p);
+    }
+  });
+  return medianPrice(prices); // USD
+}
+
+async function scrapeAmazonSG(setNum) {
+  const q = encodeURIComponent(`lego ${setNum}`);
+  const html = await proxyFetch(`https://www.amazon.sg/s?k=${q}`);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const prices = [];
+  doc.querySelectorAll('.a-price .a-offscreen').forEach(el => {
+    const m = el.textContent.match(/\$([\d,]+\.?\d*)/);
+    if (m) {
+      const p = parseFloat(m[1].replace(/,/g, ''));
+      if (p > 10) prices.push(p);
+    }
+  });
+  return medianPrice(prices); // SGD
+}
+
 async function lookupSetDetails(setNumber) {
   const num = String(setNumber).replace(/[-_]\d+$/, '').trim();
-  const [econR, rateR] = await Promise.allSettled([scrapeBrickEconomy(num), getUSDtoSGD()]);
+  const [econR, rateR, ebayR, amazonR] = await Promise.allSettled([
+    scrapeBrickEconomy(num),
+    getUSDtoSGD(),
+    scrapeEbaySold(num),
+    scrapeAmazonSG(num),
+  ]);
 
   const merged = {};
+  const rate = rateR.status === 'fulfilled' ? rateR.value : 1.35;
+
   if (econR.status === 'fulfilled') {
     const e = econR.value;
-    const rate = rateR.status === 'fulfilled' ? rateR.value : 1.35;
-    // Use all available fields — critical for sets released after the model's knowledge cutoff
     if (e.name) merged.name = e.name;
     if (e.theme) merged.theme = e.theme;
     if (e.year) merged.year = e.year;
@@ -979,6 +1021,15 @@ async function lookupSetDetails(setNumber) {
     if (e.retailPriceUSD) merged.purchasePrice = +(e.retailPriceUSD * rate).toFixed(2);
     if (e.marketValueUSD) merged.marketValue = +(e.marketValueUSD * rate).toFixed(2);
   }
+
+  // eBay sold listings (actual completed sales, USD→SGD) take priority over BrickEconomy.
+  // Amazon SG is used as a fallback if eBay scraping fails.
+  if (ebayR.status === 'fulfilled' && ebayR.value) {
+    merged.marketValue = +(ebayR.value * rate).toFixed(2);
+  } else if (amazonR.status === 'fulfilled' && amazonR.value) {
+    merged.marketValue = +amazonR.value.toFixed(2);
+  }
+
   return merged;
 }
 
