@@ -25,12 +25,12 @@
     "pieceCount": null,
     "condition": "unbuilt",
     "owner": "CK",
-    "purchasePrice": null,
-    "marketValue": null,
-    "purchaseDate": null,
+    "purchasePrice": 124.95,
+    "marketValue": 249.9,
+    "purchaseDate": "2026-06-01",
     "notes": "LEGO Ideas Tintin Moon Rocket set, sealed in original box",
     "imagePath": "images/mpuw7msrpli2y.jpg",
-    "updatedAt": "2026-06-01T07:36:52.679Z",
+    "updatedAt": "2026-06-01T12:06:19.682Z",
     "createdAt": "2026-06-01T07:34:22.336Z"
   },
   {
