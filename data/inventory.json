@@ -1,5 +1,22 @@
 [
   {
+    "id": "mpuvzvs3699oo",
+    "setNumber": "75640",
+    "name": "Onepiece Baratie Floating Restaurant",
+    "theme": "One Piece",
+    "year": 2026,
+    "pieceCount": 3402,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 250,
+    "marketValue": 499.9,
+    "purchaseDate": null,
+    "notes": "LEGO One Piece Baratie Floating Restaurant set, sealed box, 3402 pieces, age 18+",
+    "imagePath": "images/mpuvzvs3699oo.jpg",
+    "updatedAt": "2026-06-01T07:28:21.926Z",
+    "createdAt": "2026-06-01T07:28:21.926Z"
+  },
+  {
     "id": "mpjdbsf82t11b",
     "setNumber": "10262",
     "name": "James Bond Aston Martin DB5",
