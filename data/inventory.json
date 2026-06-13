@@ -1,5 +1,22 @@
 [
   {
+    "id": "mqbsf2tq2yk2c",
+    "setNumber": "10352",
+    "name": "Krusty Burger",
+    "theme": "The Simpsons",
+    "year": 1635,
+    "pieceCount": null,
+    "condition": "unbuilt",
+    "owner": "CK",
+    "purchasePrice": 208,
+    "marketValue": 299.9,
+    "purchaseDate": "2026-06-13",
+    "notes": "LEGO Icons The Simpsons Krusty Burger set, sealed in original packaging",
+    "imagePath": "images/mqbsf2tq2yk2c.jpg",
+    "updatedAt": "2026-06-13T03:20:15.330Z",
+    "createdAt": "2026-06-13T03:20:15.330Z"
+  },
+  {
     "id": "mpuw9ndp08f69",
     "setNumber": "77984",
     "name": "Jurassic Park jeep Wrangler",
